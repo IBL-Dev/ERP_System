@@ -1,3 +1,4 @@
+import { hrMenu } from "@/features/hr/menu";
 import { inventoryMenu } from "@/features/inventory/menu";
 
 export type DepartmentId = "inventory" | "finance" | "hr" | "supplier" | "sales";
@@ -17,7 +18,7 @@ export type MenuNode = {
 export const MENU: MenuNode[] = [
   inventoryMenu,
   { id: "finance", label: "Finance department", description: "Accounting, payments and reporting.", comingSoon: true },
-  { id: "hr", label: "HR department", description: "Employees, attendance and payroll.", comingSoon: true },
+  hrMenu,
   { id: "supplier", label: "Supplier department", description: "Suppliers, purchase orders and deliveries.", comingSoon: true },
   { id: "sales", label: "Sales department", description: "Customers, orders and invoicing.", comingSoon: true },
 ];

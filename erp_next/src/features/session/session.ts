@@ -2,6 +2,8 @@ import type { DepartmentId } from "@/config/navigation";
 
 export type Session = {
   userId: string;
+  /** Matches an employee record in the HR department. */
+  employeeId: string;
   name: string;
   responsibility: string;
   department: DepartmentId;
@@ -14,7 +16,8 @@ export type Session = {
 export function getSession(): Session {
   return {
     userId: "INVMGR01",
-    name: "Demo user",
+    employeeId: "EMP-1004",
+    name: "Sofia Lindqvist",
     responsibility: "Inventory manager",
     department: "inventory",
   };
