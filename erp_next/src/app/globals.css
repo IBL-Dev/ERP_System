@@ -12,6 +12,7 @@
   --shell-hover: #4a6178;
   --canvas: #f5f6f7;
   --panel: #ffffff;
+  --hover: #edf2f7;
   --line: #d5dadd;
   --ink: #1d2d3e;
   --ink-muted: #556b82;
@@ -21,6 +22,9 @@
   --field: #ffffff;
   --field-line: #89919a;
   --danger: #bb0000;
+  --success: #107e3e;
+  --warning: #c35500;
+  --info: #0070f2;
 }
 
 [data-theme="sap-horizon"] {
@@ -29,6 +33,7 @@
   --shell-hover: #eaf1fa;
   --canvas: #f5f6f7;
   --panel: #ffffff;
+  --hover: #eaf1fa;
   --line: #d9d9d9;
   --ink: #1d2d3e;
   --ink-muted: #556b82;
@@ -38,6 +43,9 @@
   --field: #ffffff;
   --field-line: #758ca4;
   --danger: #aa0808;
+  --success: #188918;
+  --warning: #c35500;
+  --info: #0064d9;
 }
 
 [data-theme="sap-quartz-dark"] {
@@ -46,6 +54,7 @@
   --shell-hover: #3a4551;
   --canvas: #12171c;
   --panel: #1d232a;
+  --hover: #27313b;
   --line: #3a4551;
   --ink: #eaecef;
   --ink-muted: #a9b4be;
@@ -55,6 +64,9 @@
   --field: #12171c;
   --field-line: #6b7a89;
   --danger: #ff8b8b;
+  --success: #5fd07a;
+  --warning: #ffb84d;
+  --info: #4da3ff;
 }
 
 [data-theme="sap-classic"] {
@@ -62,7 +74,8 @@
   --shell-fg: #ffffff;
   --shell-hover: #33409a;
   --canvas: #96afc4;
-  --panel: #96afc4;
+  --panel: #a7bdd0;
+  --hover: #8aa5bb;
   --line: #6f8ca3;
   --ink: #0a1a2b;
   --ink-muted: #2f4458;
@@ -72,6 +85,9 @@
   --field: #fffff2;
   --field-line: #5d7a91;
   --danger: #9b0000;
+  --success: #0b5d27;
+  --warning: #8a4b00;
+  --info: #1f2b7a;
 }
 
 @theme inline {
@@ -80,6 +96,7 @@
   --color-shell-hover: var(--shell-hover);
   --color-canvas: var(--canvas);
   --color-panel: var(--panel);
+  --color-hover: var(--hover);
   --color-line: var(--line);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
@@ -89,6 +106,9 @@
   --color-field: var(--field);
   --color-field-line: var(--field-line);
   --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 }
 
 body {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
@@ -20,11 +21,11 @@ const COPY: Record<LoginVariant, { title: string; hint: string; submit: string }
 };
 
 export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
+  const router = useRouter();
   const copy = COPY[variant];
   const [values, setValues] = useState<LoginValues>({ username: "", password: "" });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const userRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +36,6 @@ export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setNotice(null);
 
     const found = validateLogin(values);
     setErrors(found);
@@ -43,7 +43,8 @@ export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
     if (found.password) return passwordRef.current?.focus();
 
     // TODO: call the authentication API here (use `variant` to pick user vs admin endpoint).
-    setNotice("Log on is not connected to a server yet.");
+    // Until then any non-empty user and password opens Easy Access.
+    router.push("/home");
   };
 
   return (
@@ -54,12 +55,6 @@ export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
     >
       <h1 className="text-lg font-semibold">{copy.title}</h1>
       <p className="mt-1 text-sm text-ink-muted">{copy.hint}</p>
-
-      {notice && (
-        <p role="status" className="mt-4 border-l-4 border-accent bg-canvas px-3 py-2 text-sm">
-          {notice}
-        </p>
-      )}
 
       <div className="mt-6 space-y-4">
         <TextField
