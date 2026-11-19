@@ -1,20 +1,10 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { INITIAL_STATE, UNITS } from "./mock-data";
+import { INITIAL_STATE, UNITS } from "@/common/const/mock/inventory.mock";
+import type { InventoryContextValue } from "@/common/type";
 import { inventoryReducer } from "./reducer";
-import type { AdjustmentReason, InventoryState, StockItem, TrackedUnit } from "./types";
 import { nextStage } from "./utils";
-
-type InventoryContextValue = InventoryState & {
-  units: TrackedUnit[];
-  itemsBySku: Record<string, StockItem>;
-  advance: (id: string) => void;
-  /** Moves every open document one step. Returns how many were moved. */
-  advanceAll: () => number;
-  postCount: (input: { sku: string; countedQty: number; reason: AdjustmentReason }) => void;
-  setThresholds: (sku: string, minStock: number, reorderQty: number) => void;
-};
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { controlClass } from "./controls";
+import { Input } from "./Input";
 
 type Props = {
   value: number;
@@ -26,18 +26,20 @@ export function NumberInput({ value, label, onCommit, min = 0, max, className }:
   };
 
   return (
-    <input
+    <Input
       type="number"
       inputMode="numeric"
       min={min}
       max={max}
       step={1}
       aria-label={label}
+      controlSize="sm"
+      fullWidth={false}
       value={text}
       onChange={(e) => setText(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      className={cn(controlClass, "h-8 w-24 text-right tabular-nums", className)}
+      className={cn("w-24 text-right tabular-nums", className)}
     />
   );
 }

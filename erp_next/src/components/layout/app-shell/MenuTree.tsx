@@ -4,14 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChevronIcon, DocIcon, FolderIcon } from "@/components/ui/icons";
-import { MENU, ancestorIds, flattenMenu, type MenuNode } from "@/config/navigation";
+import { FAVORITE_MENU_IDS, MENU, MENU_ROOT_IDS, ROUTES } from "@/common/const";
+import type { MenuNode } from "@/common/type";
 import { getSession } from "@/features/session/session";
 import { cn } from "@/lib/cn";
-
-// Demo favorites. TODO: store per user once there is a backend.
-const FAVORITE_IDS = ["inv-stock", "inv-reorder"];
-
-const ROOT_IDS = ["favorites", "root"];
+import { ancestorIds, flattenMenu } from "@/lib/navigation";
 
 const row =
   "flex w-full items-center gap-1.5 py-1.5 pr-2 text-left text-sm hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
@@ -33,7 +30,7 @@ function Branch({ node, depth, open, toggle, pathname }: BranchProps) {
     return (
       <li>
         <Link
-          href={node.href ?? "/home"}
+          href={node.href ?? ROUTES.home}
           aria-current={active ? "page" : undefined}
           style={indent}
           className={cn(row, active && "bg-hover font-semibold shadow-[inset_3px_0_0_var(--accent)]")}
@@ -77,7 +74,7 @@ export function MenuTree() {
   const { department } = getSession();
 
   const [open, setOpen] = useState<Set<string>>(
-    () => new Set([...ROOT_IDS, department, ...(ancestorIds(pathname) ?? [])]),
+    () => new Set([...MENU_ROOT_IDS, department, ...(ancestorIds(pathname) ?? [])]),
   );
 
   // Keep the path to the current screen expanded (e.g. after typing a transaction code).
@@ -99,7 +96,7 @@ export function MenuTree() {
   const favorites: MenuNode = {
     id: "favorites",
     label: "Favorites",
-    children: FAVORITE_IDS.map((id) => all.find((n) => n.id === id)).filter((n): n is MenuNode => Boolean(n)),
+    children: FAVORITE_MENU_IDS.map((id) => all.find((n) => n.id === id)).filter((n): n is MenuNode => Boolean(n)),
   };
   const root: MenuNode = { id: "root", label: "LMS menu", children: MENU };
 

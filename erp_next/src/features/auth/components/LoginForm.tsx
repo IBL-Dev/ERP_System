@@ -2,27 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
+import { LOGIN_COPY, ROUTES } from "@/common/const";
+import type { LoginErrors, LoginValues, LoginVariant } from "@/common/type";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
-import type { LoginErrors, LoginValues, LoginVariant } from "../types";
 import { validateLogin } from "../validation";
-
-const COPY: Record<LoginVariant, { title: string; hint: string; submit: string }> = {
-  user: {
-    title: "Log on",
-    hint: "Enter your user name and password.",
-    submit: "Log on",
-  },
-  admin: {
-    title: "Administrator log on",
-    hint: "Enter your administrator user name and password.",
-    submit: "Log on as admin",
-  },
-};
 
 export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
   const router = useRouter();
-  const copy = COPY[variant];
+  const copy = LOGIN_COPY[variant];
   const [values, setValues] = useState<LoginValues>({ username: "", password: "" });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +32,7 @@ export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
 
     // TODO: call the authentication API here (use `variant` to pick user vs admin endpoint).
     // Until then any non-empty user and password opens Easy Access.
-    router.push("/home");
+    router.push(ROUTES.home);
   };
 
   return (

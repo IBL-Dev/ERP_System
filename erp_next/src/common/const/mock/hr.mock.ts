@@ -1,4 +1,6 @@
-import { DEMO_TODAY } from "@/lib/date";
+import { countWorkingDays, toMinutes } from "@/lib/date";
+import { DEMO_TODAY } from "../app.const";
+import { HOLIDAYS, SHIFTS } from "../hr.const";
 import type {
   AttendanceRecord,
   Contract,
@@ -11,10 +13,10 @@ import type {
   ShiftId,
   Training,
   HrState,
-} from "./types";
-import { SHIFTS, countWorkingDays, toMinutes } from "./utils";
+} from "../../type";
 
 // Mock data. Replace with an API service later; the rest of the feature only reads HrState.
+const HOLIDAY_DATES = HOLIDAYS.map((h) => h.date);
 
 type Salary = [effective: string, amount: number, reason: string];
 
@@ -108,7 +110,7 @@ function leave(
   decidedBy: string | null,
   requestedOn: string,
 ): LeaveRequest {
-  return { id: `LR-${3000 + n}`, employeeId, type, from, to, days: countWorkingDays(from, to), reason, status, decidedBy, requestedOn };
+  return { id: `LR-${3000 + n}`, employeeId, type, from, to, days: countWorkingDays(from, to, HOLIDAY_DATES), reason, status, decidedBy, requestedOn };
 }
 
 const LEAVE: LeaveRequest[] = [

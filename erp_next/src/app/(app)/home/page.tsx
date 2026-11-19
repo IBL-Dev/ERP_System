@@ -3,8 +3,10 @@ import Link from "next/link";
 import { FolderIcon } from "@/components/ui/icons";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { MENU, firstHref } from "@/config/navigation";
+import { MENU, PANEL_CLASS } from "@/common/const";
 import { getSession } from "@/features/session/session";
+import { cn } from "@/lib/cn";
+import { firstHref } from "@/lib/navigation";
 
 export const metadata: Metadata = { title: "Easy Access" };
 
@@ -42,12 +44,12 @@ export default function HomePage() {
               {href ? (
                 <Link
                   href={href}
-                  className="block rounded-md border border-line bg-panel p-4 hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className={cn(PANEL_CLASS, "block hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent")}
                 >
                   {body}
                 </Link>
               ) : (
-                <div className="rounded-md border border-dashed border-line bg-panel p-4">{body}</div>
+                <div className={cn(PANEL_CLASS, "border-dashed")}>{body}</div>
               )}
             </li>
           );

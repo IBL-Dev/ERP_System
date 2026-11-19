@@ -1,20 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY, type ThemeId } from "./themes";
-
-type ThemeContextValue = {
-  theme: ThemeId;
-  setTheme: (id: ThemeId) => void;
-};
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY } from "@/common/const";
+import type { ThemeContextValue, ThemeId } from "@/common/type";
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 

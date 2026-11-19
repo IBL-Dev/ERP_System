@@ -1,11 +1,5 @@
-import type { AdjustmentReason, InventoryState, Movement, MovementStage, StockItem } from "./types";
+import type { InventoryAction, InventoryState, Movement, MovementStage, StockItem } from "@/common/type";
 import { nextStage } from "./utils";
-
-export type InventoryAction =
-  | { type: "advance"; id: string }
-  | { type: "advanceAll" }
-  | { type: "postCount"; sku: string; countedQty: number; reason: AdjustmentReason; at: string }
-  | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number };
 
 /** Stock effect of moving a document into `stage`. Pick and pack do not change quantities. */
 function applyStage(items: StockItem[], movement: Movement, stage: MovementStage): StockItem[] {
