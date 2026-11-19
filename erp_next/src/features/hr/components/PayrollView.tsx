@@ -1,15 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PAYROLL_RULES } from "@/common/const";
+import type { Column, Payslip } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { DataTable } from "@/components/ui/DataTable";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Panel } from "@/components/ui/Panel";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/cn";
+import { formatMoney } from "@/lib/format";
 import { useHr } from "../HrProvider";
-import { PAYROLL_RULES, computePayslip, type Payslip } from "../payroll";
-import { formatMoney } from "../utils";
+import { computePayslip } from "../payroll";
 import { EmployeeLink } from "./EmployeeLink";
 
 function Line({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
@@ -19,6 +23,17 @@ function Line({ label, value, strong }: { label: string; value: string; strong?:
       <dd className="tabular-nums">{value}</dd>
     </div>
   );
+}
+
+/** Human-readable tax slabs, e.g. "$0.00 to $1,000.00: 0%, ... above $4,000.00: 18%". */
+function describeSlabs(): string {
+  return PAYROLL_RULES.taxSlabs
+    .map((slab, i, all) => {
+      const from = i === 0 ? "" : `${formatMoney(all[i - 1].upTo)} to `;
+      const to = Number.isFinite(slab.upTo) ? formatMoney(slab.upTo) : "above";
+      return `${from}${to}: ${slab.rate * 100}%`;
+    })
+    .join(", ");
 }
 
 export function PayrollView() {
@@ -76,20 +91,17 @@ export function PayrollView() {
         }
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <StatTile label="Employees paid" value={slips.length} />
         <StatTile label="Gross pay" value={formatMoney(sum((p) => p.gross))} />
         <StatTile label="Deductions and tax" value={formatMoney(sum((p) => p.totalDeductions))} hint={`of which tax ${formatMoney(sum((p) => p.tax))}`} />
         <StatTile label="Net pay" value={formatMoney(sum((p) => p.net))} />
-      </div>
+      </StatGrid>
 
       <DataTable caption="Payroll calculation by employee" columns={columns} rows={slips} rowKey={(p) => p.employeeId} />
 
       {slip && slipOwner && (
-        <section aria-labelledby="payslip" className="mt-6 rounded-md border border-line bg-panel p-4">
-          <h2 id="payslip" className="font-semibold">
-            Payslip: {slipOwner.name}, {PAYROLL_RULES.periodLabel}
-          </h2>
+        <Panel className="mt-6" title={`Payslip: ${slipOwner.name}, ${PAYROLL_RULES.periodLabel}`} titleId="payslip">
           <div className="mt-3 grid gap-8 md:grid-cols-2">
             <div>
               <h3 className="text-sm font-semibold text-ink-muted">Earnings</h3>
@@ -111,7 +123,7 @@ export function PayrollView() {
             </div>
           </div>
           <p className="mt-4 text-lg font-semibold">Net pay: {formatMoney(slip.net)}</p>
-        </section>
+        </Panel>
       )}
 
       <details className="mt-6 rounded-md border border-line bg-panel p-4 text-sm">
@@ -121,12 +133,9 @@ export function PayrollView() {
           <li>Overtime is paid at {PAYROLL_RULES.overtimeMultiplier} times the hourly rate (basic salary divided by working hours).</li>
           <li>Fixed monthly allowance: {formatMoney(PAYROLL_RULES.allowance)}.</li>
           <li>Pension fund: {PAYROLL_RULES.pensionRate * 100}% of basic salary, deducted before tax.</li>
-          <li>
-            Income tax on monthly taxable income (gross minus unpaid leave and pension):{" "}
-            {PAYROLL_RULES.taxSlabs.map((s, i, all) => `${i === 0 ? "" : `${formatMoney(all[i - 1].upTo)} to `}${Number.isFinite(s.upTo) ? formatMoney(s.upTo) : "above"}: ${s.rate * 100}%`).join(", ")}.
-          </li>
+          <li>Income tax on monthly taxable income (gross minus unpaid leave and pension): {describeSlabs()}.</li>
         </ul>
-        <p className="mt-3 text-ink-muted">These are sample values. Edit them in features/hr/payroll.ts to match your country and company.</p>
+        <p className="mt-3 text-ink-muted">These are sample values. Edit them in common/const/payroll.const.ts to match your country and company.</p>
       </details>
     </>
   );

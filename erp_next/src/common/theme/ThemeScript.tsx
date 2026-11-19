@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY } from "./themes";
+import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY } from "@/common/const";
 
 /** Runs before first paint so the saved theme never flashes the default one. */
 export function ThemeScript() {

@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { MOVEMENT_STAGES, STAGE_ACTION, STAGE_LABEL } from "@/common/const";
+import type { Column, Movement } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { DataTable } from "@/components/ui/DataTable";
+import { Notice } from "@/components/ui/Notice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/cn";
+import { formatNumber } from "@/lib/format";
 import { useInventory } from "../InventoryProvider";
-import type { Movement } from "../types";
-import { MOVEMENT_STAGES, STAGE_ACTION, STAGE_LABEL, formatNumber, nextStage } from "../utils";
+import { nextStage } from "../utils";
 
 function StageTracker({ movement }: { movement: Movement }) {
   const stages = MOVEMENT_STAGES[movement.kind];
@@ -50,7 +53,14 @@ export function MovementsView() {
       cell: (m) => {
         const next = nextStage(m);
         return next ? (
-          <Button size="sm" variant="secondary" onClick={() => { advance(m.id); setNotice(null); }}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              advance(m.id);
+              setNotice(null);
+            }}
+          >
             {STAGE_ACTION[next]}
           </Button>
         ) : (
@@ -77,9 +87,7 @@ export function MovementsView() {
         actions={<Button onClick={runAuto}>Run auto movement</Button>}
       />
 
-      <p role="status" className={cn("mb-4 border-l-4 border-accent bg-panel px-3 py-2 text-sm", !notice && "hidden")}>
-        {notice}
-      </p>
+      <Notice>{notice}</Notice>
 
       <section aria-labelledby="inbound" className="mb-8">
         <h2 id="inbound" className="mb-1 font-semibold">Incoming goods</h2>

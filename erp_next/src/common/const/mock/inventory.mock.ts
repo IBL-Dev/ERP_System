@@ -1,4 +1,4 @@
-import type { InventoryState, TrackedUnit } from "./types";
+import type { InventoryState, TrackedUnit } from "../../type";
 
 // Mock data. Replace with an API service later; the rest of the feature only reads InventoryState.
 export const INITIAL_STATE: InventoryState = {

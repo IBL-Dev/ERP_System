@@ -51,3 +51,25 @@ export type InventoryState = {
   movements: Movement[];
   adjustments: Adjustment[];
 };
+
+export type StockLevel = "ok" | "low" | "out";
+export type ExpiryState = "none" | "expired" | "soon" | "ok";
+
+export type StockLevelFilter = "all" | "alerts" | "out";
+export type LifecycleFilter = "all" | "serial" | "lot" | "soon" | "expired";
+
+export type InventoryAction =
+  | { type: "advance"; id: string }
+  | { type: "advanceAll" }
+  | { type: "postCount"; sku: string; countedQty: number; reason: AdjustmentReason; at: string }
+  | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number };
+
+export type InventoryContextValue = InventoryState & {
+  units: TrackedUnit[];
+  itemsBySku: Record<string, StockItem>;
+  advance: (id: string) => void;
+  /** Moves every open document one step. Returns how many were moved. */
+  advanceAll: () => number;
+  postCount: (input: { sku: string; countedQty: number; reason: AdjustmentReason }) => void;
+  setThresholds: (sku: string, minStock: number, reorderQty: number) => void;
+};

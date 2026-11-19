@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { APP_DESCRIPTION, APP_NAME } from "@/config/app";
-import { ThemeProvider, ThemeScript } from "@/features/theme";
+import { APP_DESCRIPTION, APP_NAME } from "@/common/const";
+import { ThemeProvider, ThemeScript } from "@/common/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {

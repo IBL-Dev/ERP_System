@@ -6,3 +6,5 @@ export type LoginValues = {
 };
 
 export type LoginErrors = Partial<Record<keyof LoginValues, string>>;
+
+export type LoginCopy = { title: string; hint: string; submit: string };
