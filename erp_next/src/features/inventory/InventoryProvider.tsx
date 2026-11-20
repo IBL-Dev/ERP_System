@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
 import { INITIAL_STATE, UNITS } from "@/common/const/mock/inventory.mock";
-import type { InventoryContextValue } from "@/common/type";
+import type { InventoryContextValue, Movement } from "@/common/type";
 import { inventoryReducer } from "./reducer";
 import { nextStage } from "./utils";
 
@@ -28,6 +28,23 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       },
       postCount: (input) => dispatch({ type: "postCount", ...input, at: new Date().toISOString() }),
       setThresholds: (sku, minStock, reorderQty) => dispatch({ type: "setThresholds", sku, minStock, reorderQty }),
+      reserveForOrder: (orderId, lines) => {
+        const needed = new Map<string, number>();
+        for (const l of lines) needed.set(l.sku, (needed.get(l.sku) ?? 0) + l.qty);
+        const short = [...needed].some(([sku, qty]) => (state.items.find((i) => i.sku === sku)?.qty.available ?? 0) < qty);
+        if (short || lines.length === 0) return null;
+
+        const movements: Movement[] = lines.map((l, i) => ({
+          id: `${orderId}-${i + 1}`,
+          kind: "outbound",
+          ref: orderId,
+          sku: l.sku,
+          qty: l.qty,
+          stage: "open",
+        }));
+        dispatch({ type: "createShipments", movements });
+        return movements.map((m) => m.id);
+      },
     }),
     [state],
   );

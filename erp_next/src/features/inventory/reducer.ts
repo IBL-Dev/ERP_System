@@ -64,6 +64,17 @@ export function inventoryReducer(state: InventoryState, action: InventoryAction)
       };
     }
 
+    case "createShipments": {
+      const items = state.items.map((item) => {
+        const needed = action.movements.filter((m) => m.sku === item.sku).reduce((t, m) => t + m.qty, 0);
+        if (!needed) return item;
+        return { ...item, qty: { ...item.qty, available: item.qty.available - needed, reserved: item.qty.reserved + needed } };
+      });
+      // Never reserve stock that is not there.
+      if (items.some((i) => i.qty.available < 0)) return state;
+      return { ...state, items, movements: [...action.movements, ...state.movements] };
+    }
+
     case "setThresholds":
       return {
         ...state,

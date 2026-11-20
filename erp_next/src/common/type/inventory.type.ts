@@ -62,7 +62,8 @@ export type InventoryAction =
   | { type: "advance"; id: string }
   | { type: "advanceAll" }
   | { type: "postCount"; sku: string; countedQty: number; reason: AdjustmentReason; at: string }
-  | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number };
+  | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number }
+  | { type: "createShipments"; movements: Movement[] };
 
 export type InventoryContextValue = InventoryState & {
   units: TrackedUnit[];
@@ -72,4 +73,9 @@ export type InventoryContextValue = InventoryState & {
   advanceAll: () => number;
   postCount: (input: { sku: string; countedQty: number; reason: AdjustmentReason }) => void;
   setThresholds: (sku: string, minStock: number, reorderQty: number) => void;
+  /**
+   * Sales handoff: reserves stock and creates one outbound document per line (stage "open").
+   * Returns the new document ids, or null (and changes nothing) if any line is short.
+   */
+  reserveForOrder: (orderId: string, lines: { sku: string; qty: number }[]) => string[] | null;
 };

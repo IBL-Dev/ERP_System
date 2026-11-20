@@ -8,6 +8,7 @@ export * from "./inventory.const";
 export * from "./menu.const";
 export * from "./payroll.const";
 export * from "./routes.const";
+export * from "./sales.const";
 export * from "./session.const";
 export * from "./theme.const";
 export * from "./ui.const";

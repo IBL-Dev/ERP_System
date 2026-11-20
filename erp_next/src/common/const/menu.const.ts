@@ -50,13 +50,34 @@ export const HR_MENU: MenuNode = {
   ],
 };
 
+export const SALES_MENU: MenuNode = {
+  id: "sales",
+  label: "Sales department",
+  description: "Quotes, orders, customers and invoicing.",
+  children: [
+    { id: "sal-overview", label: "Sales overview", code: "SAL00", href: ROUTES.sales.overview },
+    {
+      id: "sal-quoting",
+      label: "Quoting and pricing",
+      children: [
+        { id: "sal-quotes", label: "Quotes", code: "SAL01", href: ROUTES.sales.quotes },
+        { id: "sal-pricing", label: "Pricing rules", code: "SAL02", href: ROUTES.sales.pricing },
+      ],
+    },
+    { id: "sal-orders", label: "Sales orders", code: "SAL03", href: ROUTES.sales.orders },
+    { id: "sal-fulfillment", label: "Fulfillment handoff", code: "SAL04", href: ROUTES.sales.fulfillment },
+    { id: "sal-customers", label: "Customers (CRM)", code: "SAL05", href: ROUTES.sales.customers },
+    { id: "sal-billing", label: "Invoicing and billing", code: "SAL06", href: ROUTES.sales.billing },
+  ],
+};
+
 /** Main menu. Departments not built yet are marked comingSoon. */
 export const MENU: MenuNode[] = [
   INVENTORY_MENU,
   { id: "finance", label: "Finance department", description: "Accounting, payments and reporting.", comingSoon: true },
   HR_MENU,
   { id: "supplier", label: "Supplier department", description: "Suppliers, purchase orders and deliveries.", comingSoon: true },
-  { id: "sales", label: "Sales department", description: "Customers, orders and invoicing.", comingSoon: true },
+  SALES_MENU,
 ];
 
 /** Demo favorites. TODO: store per user once there is a backend. */

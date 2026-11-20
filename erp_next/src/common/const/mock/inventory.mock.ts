@@ -29,6 +29,8 @@ export const INITIAL_STATE: InventoryState = {
     { id: "SO-7007", kind: "outbound", ref: "Order 7007", sku: "SG-L", qty: 60, stage: "open" },
     { id: "SO-7008", kind: "outbound", ref: "Order 7008", sku: "FL-48", qty: 1, stage: "open" },
     { id: "SO-6990", kind: "outbound", ref: "Order 6990", sku: "LP-1400", qty: 4, stage: "shipped" },
+    { id: "SO-6985", kind: "outbound", ref: "Order 6985", sku: "SG-L", qty: 100, stage: "shipped" },
+    { id: "SO-6980", kind: "outbound", ref: "Order 6980", sku: "BC-2000", qty: 10, stage: "shipped" },
   ],
   adjustments: [],
 };

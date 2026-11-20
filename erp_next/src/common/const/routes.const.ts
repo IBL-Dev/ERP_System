@@ -12,6 +12,18 @@ export const ROUTES = {
     physicalCount: "/inventory/physical-count",
     reorder: "/inventory/reorder",
   },
+  sales: {
+    overview: "/sales",
+    quotes: "/sales/quotes",
+    newQuote: "/sales/quotes/new",
+    quote: (id: string) => `/sales/quotes/${id}`,
+    pricing: "/sales/pricing",
+    orders: "/sales/orders",
+    fulfillment: "/sales/fulfillment",
+    customers: "/sales/customers",
+    customer: (id: string) => `/sales/customers/${id}`,
+    billing: "/sales/billing",
+  },
   hr: {
     overview: "/hr",
     employees: "/hr/employees",
