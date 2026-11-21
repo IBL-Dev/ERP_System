@@ -10,5 +10,6 @@ export * from "./payroll.const";
 export * from "./routes.const";
 export * from "./sales.const";
 export * from "./session.const";
+export * from "./supplier.const";
 export * from "./theme.const";
 export * from "./ui.const";

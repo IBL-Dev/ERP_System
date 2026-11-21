@@ -28,6 +28,18 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       },
       postCount: (input) => dispatch({ type: "postCount", ...input, at: new Date().toISOString() }),
       setThresholds: (sku, minStock, reorderQty) => dispatch({ type: "setThresholds", sku, minStock, reorderQty }),
+      expectGoods: (poId, lines) => {
+        const movements: Movement[] = lines.map((l, i) => ({
+          id: `GR-${poId.split("-")[1]}-${i + 1}`,
+          kind: "inbound",
+          ref: poId,
+          sku: l.sku,
+          qty: l.qty,
+          stage: "in-transit",
+        }));
+        dispatch({ type: "createReceipts", movements });
+        return movements.map((m) => m.id);
+      },
       reserveForOrder: (orderId, lines) => {
         const needed = new Map<string, number>();
         for (const l of lines) needed.set(l.sku, (needed.get(l.sku) ?? 0) + l.qty);

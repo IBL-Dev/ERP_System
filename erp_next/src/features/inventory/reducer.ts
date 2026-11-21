@@ -75,6 +75,14 @@ export function inventoryReducer(state: InventoryState, action: InventoryAction)
       return { ...state, items, movements: [...action.movements, ...state.movements] };
     }
 
+    case "createReceipts": {
+      const items = state.items.map((item) => {
+        const incoming = action.movements.filter((m) => m.sku === item.sku).reduce((t, m) => t + m.qty, 0);
+        return incoming ? { ...item, qty: { ...item.qty, inTransit: item.qty.inTransit + incoming } } : item;
+      });
+      return { ...state, items, movements: [...action.movements, ...state.movements] };
+    }
+
     case "setThresholds":
       return {
         ...state,

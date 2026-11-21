@@ -63,7 +63,8 @@ export type InventoryAction =
   | { type: "advanceAll" }
   | { type: "postCount"; sku: string; countedQty: number; reason: AdjustmentReason; at: string }
   | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number }
-  | { type: "createShipments"; movements: Movement[] };
+  | { type: "createShipments"; movements: Movement[] }
+  | { type: "createReceipts"; movements: Movement[] };
 
 export type InventoryContextValue = InventoryState & {
   units: TrackedUnit[];
@@ -78,4 +79,9 @@ export type InventoryContextValue = InventoryState & {
    * Returns the new document ids, or null (and changes nothing) if any line is short.
    */
   reserveForOrder: (orderId: string, lines: { sku: string; qty: number }[]) => string[] | null;
+  /**
+   * Supplier handoff: records goods that are on the way. Adds the quantity to "in transit" and creates
+   * one inbound document per line (stage "in-transit"). Returns the new document ids.
+   */
+  expectGoods: (poId: string, lines: { sku: string; qty: number }[]) => string[];
 };

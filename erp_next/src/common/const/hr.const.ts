@@ -39,6 +39,24 @@ export const DEPARTMENT_HEAD: Record<Department, string> = {
   sales: "EMP-1006",
 };
 
+/** Names for the employee ids used across departments (same people as the HR mock data). */
+export const STAFF_NAMES: Record<string, string> = {
+  "EMP-1001": "Marcus Hale",
+  "EMP-1002": "Priya Nair",
+  "EMP-1003": "Daniel Okafor",
+  "EMP-1004": "Sofia Lindqvist",
+  "EMP-1005": "Hiroshi Tanaka",
+  "EMP-1006": "Elena Petrova",
+  "EMP-1007": "Tomas Alvarez",
+  "EMP-1008": "Aisha Rahman",
+  "EMP-1009": "Liam O'Connor",
+  "EMP-1010": "Chen Wei",
+  "EMP-1011": "Grace Mwangi",
+  "EMP-1012": "Noah Fischer",
+  "EMP-1013": "Zara Ahmed",
+  "EMP-1014": "Mateo Silva",
+};
+
 const DEPARTMENT_IDS = Object.keys(DEPARTMENT_LABEL) as Department[];
 
 export const DEPARTMENT_OPTIONS: readonly SelectOption<Department>[] = DEPARTMENT_IDS.map((value) => ({

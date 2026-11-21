@@ -71,12 +71,40 @@ export const SALES_MENU: MenuNode = {
   ],
 };
 
+export const SUPPLIER_MENU: MenuNode = {
+  id: "supplier",
+  label: "Supplier department",
+  description: "Vendors, contracts, purchasing, supplier performance and payment notes.",
+  children: [
+    { id: "sup-overview", label: "Supplier overview", code: "SUP00", href: ROUTES.supplier.overview },
+    {
+      id: "sup-srm",
+      label: "Vendor database (SRM)",
+      children: [
+        { id: "sup-suppliers", label: "Suppliers", code: "SUP01", href: ROUTES.supplier.suppliers },
+        { id: "sup-contracts", label: "Contracts", code: "SUP02", href: ROUTES.supplier.contracts },
+      ],
+    },
+    {
+      id: "sup-purchasing",
+      label: "Purchasing",
+      children: [
+        { id: "sup-reorder", label: "Low stock and reordering", code: "SUP03", href: ROUTES.supplier.reorder },
+        { id: "sup-requisitions", label: "Purchase requisitions", code: "SUP04", href: ROUTES.supplier.requisitions },
+        { id: "sup-orders", label: "Purchase orders", code: "SUP05", href: ROUTES.supplier.orders },
+      ],
+    },
+    { id: "sup-performance", label: "Performance and compliance", code: "SUP06", href: ROUTES.supplier.performance },
+    { id: "sup-receipts", label: "Goods receipt and payment notes", code: "SUP07", href: ROUTES.supplier.receipts },
+  ],
+};
+
 /** Main menu. Departments not built yet are marked comingSoon. */
 export const MENU: MenuNode[] = [
   INVENTORY_MENU,
   { id: "finance", label: "Finance department", description: "Accounting, payments and reporting.", comingSoon: true },
   HR_MENU,
-  { id: "supplier", label: "Supplier department", description: "Suppliers, purchase orders and deliveries.", comingSoon: true },
+  SUPPLIER_MENU,
   SALES_MENU,
 ];
 

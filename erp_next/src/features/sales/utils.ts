@@ -46,8 +46,4 @@ export function invoiceDisplayStatus(inv: Invoice): InvoiceDisplayStatus {
   return inv.dueOn && inv.dueOn < DEMO_TODAY ? "overdue" : "issued";
 }
 
-/** Next id like Q-2017 or SO-7009: highest number already used, plus one. */
-export function nextNumber(ids: string[], fallback: number): number {
-  const numbers = ids.map((id) => Number(id.split("-")[1])).filter((n) => Number.isFinite(n));
-  return Math.max(fallback, ...numbers) + 1;
-}
+export { nextNumber } from "@/lib/ids";
