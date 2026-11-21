@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
+import { DEPARTMENT_LABEL, PANEL_CLASS } from "@/common/const";
+import type { Employee } from "@/common/type";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { cn } from "@/lib/cn";
 import { useHr } from "../HrProvider";
-import type { Employee } from "../types";
-import { DEPARTMENT_LABEL } from "../utils";
 import { EmployeeLink } from "./EmployeeLink";
 
 type ByManager = Record<string, Employee[]>;
@@ -13,7 +14,7 @@ function OrgNode({ employee, byManager }: { employee: Employee; byManager: ByMan
   const reports = byManager[employee.id] ?? [];
   return (
     <li>
-      <div className="inline-block min-w-56 rounded-md border border-line bg-panel px-3 py-2">
+      <div className={cn(PANEL_CLASS, "inline-block min-w-56 px-3 py-2")}>
         <EmployeeLink id={employee.id} />
         <p className="text-xs text-ink-muted">
           {employee.jobTitle} · {DEPARTMENT_LABEL[employee.department]}

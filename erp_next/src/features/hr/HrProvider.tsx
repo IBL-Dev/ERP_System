@@ -1,32 +1,13 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { DEMO_TODAY, DEPARTMENT_HEAD } from "@/common/const";
+import { INITIAL_STATE } from "@/common/const/mock/hr.mock";
+import type { Employee, HrContextValue, LeaveRequest } from "@/common/type";
 import { getSession } from "@/features/session/session";
-import { DEMO_TODAY, addDays } from "@/lib/date";
-import { INITIAL_STATE } from "./mock-data";
+import { addDays } from "@/lib/date";
 import { hrReducer } from "./reducer";
-import type { Department, Employee, Goal, HrState, LeaveRequest, LeaveType } from "./types";
-import { DEPARTMENT_HEAD, countWorkingDays } from "./utils";
-
-type NewEmployee = { name: string; jobTitle: string; department: Department; hireDate: string; salary: number; email: string };
-type NewLeave = { type: LeaveType; from: string; to: string; reason: string };
-
-type HrContextValue = HrState & {
-  employeesById: Record<string, Employee>;
-  /** The signed-in user's employee record id. */
-  meId: string;
-  addEmployee: (input: NewEmployee) => string;
-  recordSalaryChange: (employeeId: string, amount: number, effective: string, reason: string) => void;
-  clockIn: () => void;
-  clockOut: () => void;
-  requestLeave: (input: NewLeave) => void;
-  decideLeave: (id: string, decision: "approved" | "rejected") => void;
-  addGoal: (input: Omit<Goal, "id" | "progress">) => void;
-  setGoalProgress: (id: string, progress: number) => void;
-  advanceReview: (id: string, rating?: number) => void;
-  completeTraining: (id: string) => void;
-  finalizePayroll: () => void;
-};
+import { countWorkingDays } from "./utils";
 
 const HrContext = createContext<HrContextValue | null>(null);
 

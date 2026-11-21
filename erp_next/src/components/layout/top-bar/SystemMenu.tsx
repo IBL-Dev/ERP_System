@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { THEMES, useTheme } from "@/features/theme";
+import { THEMES } from "@/common/const";
+import { useTheme } from "@/common/theme";
 import { cn } from "@/lib/cn";
 
 export function SystemMenu() {

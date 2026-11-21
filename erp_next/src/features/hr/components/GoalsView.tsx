@@ -1,19 +1,23 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { GOAL_META, PANEL_CLASS } from "@/common/const";
+import type { Column, Goal } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { DataTable } from "@/components/ui/DataTable";
 import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
 import { NumberInput } from "@/components/ui/NumberInput";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Select } from "@/components/ui/Select";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
-import { formatDate } from "@/lib/date";
 import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/date";
 import { useHr } from "../HrProvider";
-import type { Goal } from "../types";
-import { GOAL_META, goalStatus } from "../utils";
+import { goalStatus } from "../utils";
 import { EmployeeLink } from "./EmployeeLink";
 
 export function GoalsView() {
@@ -22,6 +26,8 @@ export function GoalsView() {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const employeeOptions = employees.map((e) => ({ value: e.id, label: e.name }));
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -46,42 +52,36 @@ export function GoalsView() {
       align: "right",
       cell: (g) => (
         <div className="flex items-center justify-end gap-3">
-          <div aria-hidden className="h-2 w-24 overflow-hidden rounded-full bg-hover">
-            <div className="h-full bg-accent" style={{ width: `${g.progress}%` }} />
-          </div>
+          <ProgressBar className="w-24" label={`Progress for ${g.title}`} value={g.progress} />
           <NumberInput value={g.progress} min={0} max={100} label={`Progress for ${g.title}`} onCommit={(n) => setGoalProgress(g.id, n)} className="w-20" />
         </div>
       ),
     },
-    { key: "status", header: "Status", cell: (g) => <StatusBadge tone={GOAL_META[goalStatus(g)].tone}>{GOAL_META[goalStatus(g)].label}</StatusBadge> },
+    { key: "status", header: "Status", cell: (g) => <StatusBadge meta={GOAL_META[goalStatus(g)]} /> },
   ];
 
   return (
     <>
       <PageHeader title="Goals" code="HR05" description="Set goals for each employee and keep progress up to date." />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         <StatTile label="Goals" value={goals.length} />
         <StatTile label="Achieved" value={done} />
         <StatTile label="Overdue" value={overdue} tone={overdue ? "danger" : undefined} />
         <StatTile label="Average progress" value={`${average}%`} />
-      </div>
+      </StatGrid>
 
-      <form onSubmit={submit} noValidate className="mb-6 rounded-md border border-line bg-panel p-4">
+      <form onSubmit={submit} noValidate className={cn(PANEL_CLASS, "mb-6")}>
         <h2 className="font-semibold">Set a goal</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-[14rem_1fr_11rem_auto] xl:items-start">
           <Field label="Employee" htmlFor="goal-emp">
-            <select id="goal-emp" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} className={cn(controlClass, "h-9 w-full")}>
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
-              ))}
-            </select>
+            <Select id="goal-emp" value={employeeId} options={employeeOptions} onChange={setEmployeeId} />
           </Field>
           <Field label="Goal" htmlFor="goal-title" error={error}>
-            <input id="goal-title" value={title} onChange={(e) => setTitle(e.target.value)} className={cn(controlClass, "h-9 w-full")} />
+            <Input id="goal-title" value={title} onChange={(e) => setTitle(e.target.value)} invalid={Boolean(error)} />
           </Field>
           <Field label="Due date" htmlFor="goal-due">
-            <input id="goal-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} className={cn(controlClass, "h-9 w-full")} />
+            <Input id="goal-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </Field>
           <div className="xl:pt-6">
             <Button type="submit">Add goal</Button>

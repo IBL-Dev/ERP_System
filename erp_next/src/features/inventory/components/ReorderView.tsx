@@ -1,41 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { useMemo, useState } from "react";
+import { LEVEL_META } from "@/common/const";
+import type { Column, StockItem } from "@/common/type";
+import { DataTable } from "@/components/ui/DataTable";
+import { FilterBar } from "@/components/ui/FilterBar";
+import { Notice } from "@/components/ui/Notice";
+import { NumberInput } from "@/components/ui/NumberInput";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
-import { cn } from "@/lib/cn";
+import { formatNumber } from "@/lib/format";
 import { useInventory } from "../InventoryProvider";
-import type { StockItem } from "../types";
-import { LEVEL_META, formatNumber, stockLevel } from "../utils";
-
-/** Number input that saves on blur or Enter, and reverts if the value is not a whole number >= 0. */
-function NumberCell({ value, label, onCommit }: { value: number; label: string; onCommit: (n: number) => void }) {
-  const [text, setText] = useState(String(value));
-  useEffect(() => setText(String(value)), [value]);
-
-  const commit = () => {
-    const n = Number(text);
-    if (text.trim() !== "" && Number.isInteger(n) && n >= 0) onCommit(n);
-    else setText(String(value));
-  };
-
-  return (
-    <input
-      type="number"
-      inputMode="numeric"
-      min={0}
-      step={1}
-      aria-label={label}
-      value={text}
-      onChange={(e) => setText(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      className={cn(controlClass, "h-8 w-24 text-right tabular-nums")}
-    />
-  );
-}
+import { stockLevel } from "../utils";
 
 export function ReorderView() {
   const { items, setThresholds } = useInventory();
@@ -60,11 +36,7 @@ export function ReorderView() {
       header: "Minimum safety stock",
       align: "right",
       cell: (i) => (
-        <NumberCell
-          value={i.minStock}
-          label={`Minimum safety stock for ${i.name}`}
-          onCommit={(n) => setThresholds(i.sku, n, i.reorderQty)}
-        />
+        <NumberInput value={i.minStock} label={`Minimum safety stock for ${i.name}`} onCommit={(n) => setThresholds(i.sku, n, i.reorderQty)} />
       ),
     },
     {
@@ -72,11 +44,7 @@ export function ReorderView() {
       header: "Reorder quantity",
       align: "right",
       cell: (i) => (
-        <NumberCell
-          value={i.reorderQty}
-          label={`Reorder quantity for ${i.name}`}
-          onCommit={(n) => setThresholds(i.sku, i.minStock, n)}
-        />
+        <NumberInput value={i.reorderQty} label={`Reorder quantity for ${i.name}`} onCommit={(n) => setThresholds(i.sku, i.minStock, n)} />
       ),
     },
     {
@@ -85,11 +53,7 @@ export function ReorderView() {
       align: "right",
       cell: (i) => (stockLevel(i) === "ok" ? <span className="text-ink-muted">–</span> : `${formatNumber(i.reorderQty)} ${i.uom}`),
     },
-    {
-      key: "alert",
-      header: "Alert",
-      cell: (i) => <StatusBadge tone={LEVEL_META[stockLevel(i)].tone}>{LEVEL_META[stockLevel(i)].label}</StatusBadge>,
-    },
+    { key: "alert", header: "Alert", cell: (i) => <StatusBadge meta={LEVEL_META[stockLevel(i)]} /> },
   ];
 
   return (
@@ -100,23 +64,22 @@ export function ReorderView() {
         description="Set the minimum safety stock per item. An alert shows when available stock falls to that level or below."
       />
 
-      <p
-        role="status"
-        className={cn("mb-4 border-l-4 border-warning bg-panel px-3 py-2 text-sm", alertCount === 0 && "hidden")}
-      >
-        {alertCount} item{alertCount === 1 ? " is" : "s are"} at or below minimum safety stock. Suggested order quantities are
-        shown below.
-      </p>
+      <Notice tone="warning">
+        {alertCount > 0 &&
+          `${alertCount} item${alertCount === 1 ? " is" : "s are"} at or below minimum safety stock. Suggested order quantities are shown below.`}
+      </Notice>
 
-      <label className="mb-4 flex w-fit items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={onlyAlerts}
-          onChange={(e) => setOnlyAlerts(e.target.checked)}
-          className="h-4 w-4 accent-[var(--accent)]"
-        />
-        Show only items with alerts
-      </label>
+      <FilterBar>
+        <label className="flex w-fit items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={onlyAlerts}
+            onChange={(e) => setOnlyAlerts(e.target.checked)}
+            className="h-4 w-4 accent-[var(--accent)]"
+          />
+          Show only items with alerts
+        </label>
+      </FilterBar>
 
       <DataTable caption="Safety stock limits and low-stock alerts" columns={columns} rows={rows} rowKey={(i) => i.sku} empty="No alerts. Every item is above its safety stock." />
       <p className="mt-3 text-xs text-ink-muted">Edit a limit and press Enter or move to another field to save it.</p>

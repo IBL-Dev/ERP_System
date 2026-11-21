@@ -1,12 +1,5 @@
-import type { ReactNode } from "react";
+import type { Column } from "@/common/type";
 import { cn } from "@/lib/cn";
-
-export type Column<T> = {
-  key: string;
-  header: string;
-  cell: (row: T) => ReactNode;
-  align?: "left" | "right";
-};
 
 type Props<T> = {
   caption: string;
