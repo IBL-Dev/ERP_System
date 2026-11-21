@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ROUTES } from "@/common/const";
 import { useHr } from "../HrProvider";
 
 /** Employee name that links to the employee record. */
@@ -11,7 +12,7 @@ export function EmployeeLink({ id, showTitle = false }: { id: string; showTitle?
   return (
     <div>
       <Link
-        href={`/hr/employees/${employee.id}`}
+        href={ROUTES.hr.employee(employee.id)}
         className="font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         {employee.name}

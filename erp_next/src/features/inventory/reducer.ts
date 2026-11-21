@@ -1,11 +1,5 @@
-import type { AdjustmentReason, InventoryState, Movement, MovementStage, StockItem } from "./types";
+import type { InventoryAction, InventoryState, Movement, MovementStage, StockItem } from "@/common/type";
 import { nextStage } from "./utils";
-
-export type InventoryAction =
-  | { type: "advance"; id: string }
-  | { type: "advanceAll" }
-  | { type: "postCount"; sku: string; countedQty: number; reason: AdjustmentReason; at: string }
-  | { type: "setThresholds"; sku: string; minStock: number; reorderQty: number };
 
 /** Stock effect of moving a document into `stage`. Pick and pack do not change quantities. */
 function applyStage(items: StockItem[], movement: Movement, stage: MovementStage): StockItem[] {
@@ -68,6 +62,17 @@ export function inventoryReducer(state: InventoryState, action: InventoryAction)
           ...state.adjustments,
         ],
       };
+    }
+
+    case "createShipments": {
+      const items = state.items.map((item) => {
+        const needed = action.movements.filter((m) => m.sku === item.sku).reduce((t, m) => t + m.qty, 0);
+        if (!needed) return item;
+        return { ...item, qty: { ...item.qty, available: item.qty.available - needed, reserved: item.qty.reserved + needed } };
+      });
+      // Never reserve stock that is not there.
+      if (items.some((i) => i.qty.available < 0)) return state;
+      return { ...state, items, movements: [...action.movements, ...state.movements] };
     }
 
     case "setThresholds":

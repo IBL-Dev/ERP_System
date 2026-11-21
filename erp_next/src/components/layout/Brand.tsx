@@ -1,4 +1,4 @@
-import { APP_NAME } from "@/config/app";
+import { APP_NAME } from "@/common/const";
 
 export function Brand() {
   return (
