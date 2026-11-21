@@ -1,17 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { LEVEL_META, STATUS_META, STOCK_LEVEL_FILTERS, STOCK_STATUSES } from "@/common/const";
+import type { Column, StockItem, StockLevelFilter } from "@/common/type";
+import { DataTable } from "@/components/ui/DataTable";
+import { FilterBar } from "@/components/ui/FilterBar";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SearchInput } from "@/components/ui/SearchInput";
+import { Select } from "@/components/ui/Select";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
-import { cn } from "@/lib/cn";
+import { formatNumber } from "@/lib/format";
 import { useInventory } from "../InventoryProvider";
-import type { StockItem } from "../types";
-import { LEVEL_META, STATUS_META, STOCK_STATUSES, formatNumber, stockLevel, sumStatus, totalQty } from "../utils";
-
-type LevelFilter = "all" | "alerts" | "out";
+import { stockLevel, sumStatus, totalQty } from "../utils";
 
 const columns: Column<StockItem>[] = [
   { key: "sku", header: "SKU", cell: (i) => i.sku },
@@ -33,17 +35,13 @@ const columns: Column<StockItem>[] = [
   })),
   { key: "total", header: "Total", align: "right", cell: (i) => <strong>{formatNumber(totalQty(i))}</strong> },
   { key: "uom", header: "Unit", cell: (i) => i.uom },
-  {
-    key: "level",
-    header: "Level",
-    cell: (i) => <StatusBadge tone={LEVEL_META[stockLevel(i)].tone}>{LEVEL_META[stockLevel(i)].label}</StatusBadge>,
-  },
+  { key: "level", header: "Level", cell: (i) => <StatusBadge meta={LEVEL_META[stockLevel(i)]} /> },
 ];
 
 export function StockLevelsView() {
   const { items } = useInventory();
   const [query, setQuery] = useState("");
-  const [level, setLevel] = useState<LevelFilter>("all");
+  const [level, setLevel] = useState<StockLevelFilter>("all");
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,39 +61,16 @@ export function StockLevelsView() {
         description="Exact quantity of every item, split by status. Figures change as soon as a movement or count is posted."
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <StatGrid>
         {STOCK_STATUSES.map((status) => (
-          <StatTile
-            key={status}
-            label={STATUS_META[status].label}
-            value={formatNumber(sumStatus(items, status))}
-            hint="Units across all items"
-          />
+          <StatTile key={status} label={STATUS_META[status].label} value={formatNumber(sumStatus(items, status))} hint="Units across all items" />
         ))}
-      </div>
+      </StatGrid>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <label htmlFor="stock-search" className="sr-only">Search items</label>
-        <input
-          id="stock-search"
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search SKU, item or location"
-          className={cn(controlClass, "h-9 w-64")}
-        />
-        <label htmlFor="stock-level" className="sr-only">Stock level</label>
-        <select
-          id="stock-level"
-          value={level}
-          onChange={(e) => setLevel(e.target.value as LevelFilter)}
-          className={cn(controlClass, "h-9")}
-        >
-          <option value="all">All items</option>
-          <option value="alerts">Low or out of stock</option>
-          <option value="out">Out of stock</option>
-        </select>
-      </div>
+      <FilterBar>
+        <SearchInput id="stock-search" label="Search items" value={query} onChange={setQuery} placeholder="Search SKU, item or location" />
+        <Select variant="filter" id="stock-level" label="Stock level" value={level} onChange={setLevel} options={STOCK_LEVEL_FILTERS} />
+      </FilterBar>
 
       <DataTable caption="Stock levels by item and status" columns={columns} rows={rows} rowKey={(i) => i.sku} empty="No items match your search." />
     </>

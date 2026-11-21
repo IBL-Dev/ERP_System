@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ROUTES } from "@/common/const";
 import { SystemMenu } from "@/components/layout/top-bar/SystemMenu";
 import { getSession } from "@/features/session/session";
 
@@ -14,7 +15,7 @@ export function AppTopBar() {
             {session.userId} · {session.responsibility}
           </span>
           <Link
-            href="/login"
+            href={ROUTES.login}
             className="flex h-7 items-center rounded px-3 hover:bg-shell-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
           >
             Log off

@@ -2,19 +2,16 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { DEMO_TODAY, HOLIDAYS, LEAVE_LABEL, PAYROLL_RULES, ROUTES } from "@/common/const";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Panel } from "@/components/ui/Panel";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
-import { DEMO_TODAY, formatDate } from "@/lib/date";
+import { formatDate } from "@/lib/date";
+import { formatMoney } from "@/lib/format";
 import { useHr } from "../HrProvider";
-import { PAYROLL_RULES, computePayslip } from "../payroll";
-import {
-  HOLIDAYS,
-  LEAVE_LABEL,
-  approverOf,
-  attendanceStatus,
-  formatMoney,
-  trainingStatus,
-} from "../utils";
+import { computePayslip } from "../payroll";
+import { approverOf, attendanceStatus, trainingStatus } from "../utils";
 
 export function OverviewView() {
   const { employees, employeesById, attendance, leave, training, meId } = useHr();
@@ -40,31 +37,30 @@ export function OverviewView() {
     <>
       <PageHeader title="HR overview" code="HR00" description="Headcount, attendance, approvals and payroll at a glance." />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatTile label="Employees" value={employees.length} hint="Active records" href="/hr/employees" />
-        <StatTile label="Clocked in today" value={clockedIn} hint={lateToday ? `${lateToday} late` : "No late arrivals"} href="/hr/attendance" />
+      <StatGrid columns={5}>
+        <StatTile label="Employees" value={employees.length} hint="Active records" href={ROUTES.hr.employees} />
+        <StatTile label="Clocked in today" value={clockedIn} hint={lateToday ? `${lateToday} late` : "No late arrivals"} href={ROUTES.hr.attendance} />
         <StatTile
           label="Leave awaiting me"
           value={awaitingMe.length}
           hint="Requests you can approve"
           tone={awaitingMe.length ? "warning" : undefined}
-          href="/hr/leave"
+          href={ROUTES.hr.leave}
         />
-        <StatTile
-          label="Overdue training"
-          value={overdueTraining}
-          tone={overdueTraining ? "danger" : undefined}
-          href="/hr/talent/training"
-        />
-        <StatTile label={`Net payroll, ${PAYROLL_RULES.periodLabel}`} value={formatMoney(netTotal)} hint="Draft calculation" href="/hr/payroll" />
-      </div>
+        <StatTile label="Overdue training" value={overdueTraining} tone={overdueTraining ? "danger" : undefined} href={ROUTES.hr.training} />
+        <StatTile label={`Net payroll, ${PAYROLL_RULES.periodLabel}`} value={formatMoney(netTotal)} hint="Draft calculation" href={ROUTES.hr.payroll} />
+      </StatGrid>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="approvals" className="rounded-md border border-line bg-panel p-4">
-          <div className="flex items-center justify-between">
-            <h2 id="approvals" className="font-semibold">Leave awaiting your approval</h2>
-            <Link href="/hr/leave" className="text-sm text-accent hover:underline">Open leave</Link>
-          </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel
+          title="Leave awaiting your approval"
+          titleId="approvals"
+          actions={
+            <Link href={ROUTES.hr.leave} className="text-sm text-accent hover:underline">
+              Open leave
+            </Link>
+          }
+        >
           {awaitingMe.length === 0 ? (
             <p className="mt-4 text-sm text-ink-muted">Nothing to approve right now.</p>
           ) : (
@@ -79,10 +75,9 @@ export function OverviewView() {
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <section aria-labelledby="holidays" className="rounded-md border border-line bg-panel p-4">
-          <h2 id="holidays" className="font-semibold">Upcoming company holidays</h2>
+        <Panel title="Upcoming company holidays" titleId="holidays">
           <ul className="mt-3 divide-y divide-line">
             {upcomingHolidays.map((h) => (
               <li key={h.date} className="flex justify-between py-2 text-sm">
@@ -91,7 +86,7 @@ export function OverviewView() {
               </li>
             ))}
           </ul>
-        </section>
+        </Panel>
       </div>
     </>
   );

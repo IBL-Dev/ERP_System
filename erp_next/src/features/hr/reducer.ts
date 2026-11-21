@@ -1,18 +1,5 @@
-import type { AttendanceRecord, Employee, Goal, HrState, LeaveRequest } from "./types";
+import type { AttendanceRecord, HrAction, HrState } from "@/common/type";
 import { approverOf } from "./utils";
-
-export type HrAction =
-  | { type: "addEmployee"; employee: Employee }
-  | { type: "recordSalaryChange"; employeeId: string; effective: string; amount: number; reason: string }
-  | { type: "clockIn"; employeeId: string; date: string; time: string }
-  | { type: "clockOut"; employeeId: string; date: string; time: string }
-  | { type: "requestLeave"; request: LeaveRequest }
-  | { type: "decideLeave"; id: string; decision: "approved" | "rejected"; byId: string }
-  | { type: "addGoal"; goal: Goal }
-  | { type: "setGoalProgress"; id: string; progress: number }
-  | { type: "advanceReview"; id: string; rating?: number }
-  | { type: "completeTraining"; id: string; date: string }
-  | { type: "finalizePayroll" };
 
 export function hrReducer(state: HrState, action: HrAction): HrState {
   switch (action.type) {

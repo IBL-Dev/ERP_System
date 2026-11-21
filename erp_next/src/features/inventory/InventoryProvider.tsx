@@ -1,20 +1,10 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import { INITIAL_STATE, UNITS } from "./mock-data";
+import { INITIAL_STATE, UNITS } from "@/common/const/mock/inventory.mock";
+import type { InventoryContextValue, Movement } from "@/common/type";
 import { inventoryReducer } from "./reducer";
-import type { AdjustmentReason, InventoryState, StockItem, TrackedUnit } from "./types";
 import { nextStage } from "./utils";
-
-type InventoryContextValue = InventoryState & {
-  units: TrackedUnit[];
-  itemsBySku: Record<string, StockItem>;
-  advance: (id: string) => void;
-  /** Moves every open document one step. Returns how many were moved. */
-  advanceAll: () => number;
-  postCount: (input: { sku: string; countedQty: number; reason: AdjustmentReason }) => void;
-  setThresholds: (sku: string, minStock: number, reorderQty: number) => void;
-};
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
 
@@ -38,6 +28,23 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       },
       postCount: (input) => dispatch({ type: "postCount", ...input, at: new Date().toISOString() }),
       setThresholds: (sku, minStock, reorderQty) => dispatch({ type: "setThresholds", sku, minStock, reorderQty }),
+      reserveForOrder: (orderId, lines) => {
+        const needed = new Map<string, number>();
+        for (const l of lines) needed.set(l.sku, (needed.get(l.sku) ?? 0) + l.qty);
+        const short = [...needed].some(([sku, qty]) => (state.items.find((i) => i.sku === sku)?.qty.available ?? 0) < qty);
+        if (short || lines.length === 0) return null;
+
+        const movements: Movement[] = lines.map((l, i) => ({
+          id: `${orderId}-${i + 1}`,
+          kind: "outbound",
+          ref: orderId,
+          sku: l.sku,
+          qty: l.qty,
+          stage: "open",
+        }));
+        dispatch({ type: "createShipments", movements });
+        return movements.map((m) => m.id);
+      },
     }),
     [state],
   );

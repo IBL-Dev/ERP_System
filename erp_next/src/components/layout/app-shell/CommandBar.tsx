@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { ROUTES } from "@/common/const";
 import { BackIcon, HomeIcon, MenuIcon } from "@/components/ui/icons";
-import { controlClass } from "@/components/ui/controls";
-import { findByCode } from "@/config/navigation";
+import { Input } from "@/components/ui/Input";
+import { findByCode } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 
 const iconButton =
@@ -48,14 +49,17 @@ export function CommandBar({ onToggleMenu }: { onToggleMenu: () => void }) {
         <IconButton label="Back" onClick={() => router.back()}>
           <BackIcon className="h-4 w-4" />
         </IconButton>
-        <Link href="/home" aria-label="Easy Access home" className={iconButton}>
+        <Link href={ROUTES.home} aria-label="Easy Access home" className={iconButton}>
           <HomeIcon className="h-4 w-4" />
         </Link>
         <label htmlFor="transaction-code" className="sr-only">
           Transaction code
         </label>
-        <input
+        <Input
           id="transaction-code"
+          controlSize="sm"
+          fullWidth={false}
+          className="w-56"
           value={code}
           onChange={(e) => {
             setCode(e.target.value);
@@ -64,7 +68,7 @@ export function CommandBar({ onToggleMenu }: { onToggleMenu: () => void }) {
           placeholder="Transaction code, e.g. INV01"
           autoComplete="off"
           spellCheck={false}
-          className={cn(controlClass, "h-8 w-56")}
+          invalid={Boolean(error)}
         />
         {error && (
           <p role="alert" className="text-sm text-danger">

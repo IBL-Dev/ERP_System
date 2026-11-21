@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { RATING_OPTIONS, REVIEW_META, REVIEW_STAGES } from "@/common/const";
+import type { Column, Review } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { DataTable } from "@/components/ui/DataTable";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Select } from "@/components/ui/Select";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
-import { cn } from "@/lib/cn";
 import { useHr } from "../HrProvider";
-import type { Review } from "../types";
-import { REVIEW_META, REVIEW_STAGES } from "../utils";
 import { EmployeeLink } from "./EmployeeLink";
 
 function ReviewAction({ review }: { review: Review }) {
@@ -23,13 +23,7 @@ function ReviewAction({ review }: { review: Review }) {
   if (review.stage === "manager-review") {
     return (
       <div className="flex items-center gap-2">
-        <label htmlFor={`rating-${review.id}`} className="sr-only">Rating</label>
-        <select id={`rating-${review.id}`} value={rating} onChange={(e) => setRating(e.target.value)} className={cn(controlClass, "h-7 text-xs")}>
-          <option value="">Rating</option>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>{n} of 5</option>
-          ))}
-        </select>
+        <Select variant="filter" controlSize="sm" id={`rating-${review.id}`} label="Rating" value={rating} onChange={setRating} options={RATING_OPTIONS} />
         <Button size="sm" disabled={!rating} onClick={() => advanceReview(review.id, Number(rating))}>Complete review</Button>
       </div>
     );
@@ -37,31 +31,27 @@ function ReviewAction({ review }: { review: Review }) {
   return <span className="text-sm text-ink-muted">Done</span>;
 }
 
+const columns: Column<Review>[] = [
+  { key: "emp", header: "Employee", cell: (r) => <EmployeeLink id={r.employeeId} showTitle /> },
+  { key: "reviewer", header: "Reviewer", cell: (r) => <EmployeeLink id={r.reviewerId} /> },
+  { key: "cycle", header: "Cycle", cell: (r) => r.cycle },
+  { key: "stage", header: "Stage", cell: (r) => <StatusBadge meta={REVIEW_META[r.stage]} /> },
+  { key: "rating", header: "Rating", align: "right", cell: (r) => (r.rating ? `${r.rating} of 5` : "-") },
+  { key: "action", header: "Next step", cell: (r) => <ReviewAction review={r} /> },
+];
+
 export function ReviewsView() {
   const { reviews } = useHr();
 
-  const columns: Column<Review>[] = [
-    { key: "emp", header: "Employee", cell: (r) => <EmployeeLink id={r.employeeId} showTitle /> },
-    { key: "reviewer", header: "Reviewer", cell: (r) => <EmployeeLink id={r.reviewerId} /> },
-    { key: "cycle", header: "Cycle", cell: (r) => r.cycle },
-    { key: "stage", header: "Stage", cell: (r) => <StatusBadge tone={REVIEW_META[r.stage].tone}>{REVIEW_META[r.stage].label}</StatusBadge> },
-    { key: "rating", header: "Rating", align: "right", cell: (r) => (r.rating ? `${r.rating} of 5` : "-") },
-    { key: "action", header: "Next step", cell: (r) => <ReviewAction review={r} /> },
-  ];
-
   return (
     <>
-      <PageHeader
-        title="Performance reviews"
-        code="HR06"
-        description="Each review moves from the employee's self-review to the manager's rating."
-      />
+      <PageHeader title="Performance reviews" code="HR06" description="Each review moves from the employee's self-review to the manager's rating." />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-3">
+      <StatGrid columns={3}>
         {REVIEW_STAGES.map((stage) => (
           <StatTile key={stage} label={REVIEW_META[stage].label} value={reviews.filter((r) => r.stage === stage).length} />
         ))}
-      </div>
+      </StatGrid>
 
       <DataTable caption="Performance reviews" columns={columns} rows={reviews} rowKey={(r) => r.id} empty="No reviews in this cycle." />
     </>
