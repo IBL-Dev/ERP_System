@@ -143,12 +143,13 @@ export function SupplierProvider({ children }: { children: ReactNode }) {
             amount: invoiceAmount,
             sentOn: DEMO_TODAY,
             dueOn: addDays(DEMO_TODAY, supplier?.paymentTermsDays ?? 30),
+            paidOn: null,
             status: "sent",
           },
         });
       },
 
-      markNotePaid: (id) => dispatch({ type: "markNotePaid", id }),
+      markNotePaid: (id) => dispatch({ type: "markNotePaid", id, paidOn: DEMO_TODAY }),
     };
   }, [state, inventory, meId]);
 

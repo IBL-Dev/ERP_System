@@ -115,6 +115,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
           issuedOn: null,
           dueOn: null,
           paidAmount: 0,
+          payments: [],
           status: "requested",
         };
         dispatch({ type: "requestInvoice", invoice });
@@ -126,7 +127,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "issueInvoice", id, issuedOn: DEMO_TODAY, dueOn: addDays(DEMO_TODAY, terms) });
       },
 
-      markPaid: (id) => dispatch({ type: "markPaid", id }),
+      recordPayment: (id, amount) => dispatch({ type: "recordPayment", id, amount, date: DEMO_TODAY }),
     };
   }, [state, inventory, userName]);
 

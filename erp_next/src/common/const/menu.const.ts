@@ -71,6 +71,42 @@ export const SALES_MENU: MenuNode = {
   ],
 };
 
+export const FINANCE_MENU: MenuNode = {
+  id: "finance",
+  label: "Finance department",
+  description: "General ledger, payables, receivables, assets and budgets.",
+  children: [
+    { id: "fin-overview", label: "Finance overview", code: "FIN00", href: ROUTES.finance.overview },
+    {
+      id: "fin-gl",
+      label: "General ledger",
+      children: [
+        { id: "fin-accounts", label: "Chart of accounts", code: "FIN01", href: ROUTES.finance.accounts },
+        { id: "fin-journal", label: "Journal entries", code: "FIN02", href: ROUTES.finance.journal },
+        { id: "fin-trial", label: "Trial balance", code: "FIN03", href: ROUTES.finance.trialBalance },
+      ],
+    },
+    {
+      id: "fin-ap",
+      label: "Accounts payable",
+      children: [
+        { id: "fin-payables", label: "Vendor invoices", code: "FIN04", href: ROUTES.finance.payables },
+        { id: "fin-payments", label: "Payment schedule", code: "FIN05", href: ROUTES.finance.payments },
+      ],
+    },
+    {
+      id: "fin-ar",
+      label: "Accounts receivable",
+      children: [
+        { id: "fin-receivables", label: "Customer billing", code: "FIN06", href: ROUTES.finance.receivables },
+        { id: "fin-receipts", label: "Incoming payments", code: "FIN07", href: ROUTES.finance.receipts },
+      ],
+    },
+    { id: "fin-assets", label: "Asset management", code: "FIN08", href: ROUTES.finance.assets },
+    { id: "fin-budgets", label: "Budgeting", code: "FIN09", href: ROUTES.finance.budgets },
+  ],
+};
+
 export const SUPPLIER_MENU: MenuNode = {
   id: "supplier",
   label: "Supplier department",
@@ -99,10 +135,10 @@ export const SUPPLIER_MENU: MenuNode = {
   ],
 };
 
-/** Main menu. Departments not built yet are marked comingSoon. */
+/** Main menu. Every department is built. */
 export const MENU: MenuNode[] = [
   INVENTORY_MENU,
-  { id: "finance", label: "Finance department", description: "Accounting, payments and reporting.", comingSoon: true },
+  FINANCE_MENU,
   HR_MENU,
   SUPPLIER_MENU,
   SALES_MENU,

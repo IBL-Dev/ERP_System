@@ -48,10 +48,21 @@ export function salesReducer(state: SalesState, action: SalesAction): SalesState
         ),
       };
 
-    case "markPaid":
+    case "recordPayment":
       return {
         ...state,
-        invoices: state.invoices.map((i) => (i.id === action.id && i.status === "issued" ? { ...i, status: "paid", paidAmount: i.amount } : i)),
+        invoices: state.invoices.map((i) => {
+          if (i.id !== action.id || i.status !== "issued") return i;
+          const amount = Math.min(action.amount, Math.round((i.amount - i.paidAmount) * 100) / 100);
+          if (amount <= 0) return i;
+          const paidAmount = Math.round((i.paidAmount + amount) * 100) / 100;
+          return {
+            ...i,
+            paidAmount,
+            payments: [...i.payments, { date: action.date, amount }],
+            status: paidAmount >= i.amount ? "paid" : "issued",
+          };
+        }),
       };
   }
 }

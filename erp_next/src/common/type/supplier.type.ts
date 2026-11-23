@@ -95,6 +95,7 @@ export type PaymentNote = {
   amount: number;
   sentOn: string;
   dueOn: string;
+  paidOn: string | null;
   status: PaymentNoteStatus;
 };
 
@@ -163,7 +164,7 @@ export type SupplierAction =
   | { type: "decideRequisition"; id: string; decision: "approved" | "rejected"; byId: string }
   | { type: "createOrder"; order: PurchaseOrder }
   | { type: "confirmReceipt"; poId: string; delivery: DeliveryRecord; note: PaymentNote }
-  | { type: "markNotePaid"; id: string };
+  | { type: "markNotePaid"; id: string; paidOn: string };
 
 export type SupplierContextValue = SupplierState & {
   suppliersById: Record<string, Supplier>;
@@ -180,5 +181,6 @@ export type SupplierContextValue = SupplierState & {
   createOrder: (input: NewPurchaseOrder) => string | null;
   /** Confirms the goods that arrived, records the delivery and sends a payment note to Finance. */
   confirmReceipt: (poId: string, input: ReceiptInput) => void;
+  /** Finance pays the supplier for a payment note. */
   markNotePaid: (id: string) => void;
 };

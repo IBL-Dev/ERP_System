@@ -53,7 +53,7 @@ export function supplierReducer(state: SupplierState, action: SupplierAction): S
     case "markNotePaid":
       return {
         ...state,
-        paymentNotes: state.paymentNotes.map((n) => (n.id === action.id && n.status === "sent" ? { ...n, status: "paid" } : n)),
+        paymentNotes: state.paymentNotes.map((n) => (n.id === action.id && n.status === "sent" ? { ...n, status: "paid", paidOn: action.paidOn } : n)),
       };
   }
 }

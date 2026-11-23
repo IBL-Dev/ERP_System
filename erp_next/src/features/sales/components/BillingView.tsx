@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { INVOICE_FILTERS, INVOICE_STATUS_META } from "@/common/const";
+import { INVOICE_FILTERS, INVOICE_STATUS_META, ROUTES } from "@/common/const";
 import type { Column, Invoice, InvoiceFilter, SalesOrder } from "@/common/type";
 import { Button } from "@/components/ui/Button";
 import { DataTable } from "@/components/ui/DataTable";
@@ -20,7 +21,7 @@ import { fulfillmentOf, invoiceBalance, invoiceDisplayStatus } from "../utils";
 import { CustomerLink } from "./CustomerLink";
 
 export function BillingView() {
-  const { orders, invoices, signalFinance, issueInvoice, markPaid } = useSales();
+  const { orders, invoices, signalFinance } = useSales();
   const { movements } = useInventory();
   const [filter, setFilter] = useState<InvoiceFilter>("all");
 
@@ -47,18 +48,6 @@ export function BillingView() {
     { key: "due", header: "Due", cell: (i) => (i.dueOn ? formatDate(i.dueOn) : "-") },
     { key: "balance", header: "Balance", align: "right", cell: (i) => (i.status === "requested" ? "-" : formatMoney(invoiceBalance(i))) },
     { key: "status", header: "Status", cell: (i) => <StatusBadge meta={INVOICE_STATUS_META[invoiceDisplayStatus(i)]} /> },
-    {
-      key: "action",
-      header: "Finance reply (demo)",
-      cell: (i) =>
-        i.status === "requested" ? (
-          <Button size="sm" variant="secondary" onClick={() => issueInvoice(i.id)}>Mark issued</Button>
-        ) : i.status === "issued" ? (
-          <Button size="sm" variant="secondary" onClick={() => markPaid(i.id)}>Mark paid</Button>
-        ) : (
-          <span className="text-sm text-ink-muted">Done</span>
-        ),
-    },
   ];
 
   return (
@@ -76,7 +65,10 @@ export function BillingView() {
         <StatTile label="Collected" value={formatMoney(collected)} />
       </StatGrid>
 
-      <Notice>Until the Finance department is built, the buttons in the last column stand in for Finance issuing the invoice and recording the payment.</Notice>
+      <Notice>
+        Finance issues each invoice and records the payments. Follow them in{" "}
+        <Link href={ROUTES.finance.receivables} className="text-accent hover:underline">Finance, Accounts receivable</Link>.
+      </Notice>
 
       <section aria-labelledby="ready" className="mb-8">
         <h2 id="ready" className="mb-3 font-semibold">Shipped orders ready to invoice</h2>

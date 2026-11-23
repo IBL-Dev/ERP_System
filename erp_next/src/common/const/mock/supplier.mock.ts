@@ -152,6 +152,7 @@ CLOSED_SEEDS.forEach(([num, supplierId, sku, qty, orderedOn, promised, taken, ac
     amount: round2(expectedValue * factor),
     sentOn: receivedOn,
     dueOn: addDays(receivedOn, supplierOf(supplierId).paymentTermsDays),
+    paidOn: paid ? [addDays(receivedOn, 10), "2026-11-10"].sort()[0] : null,
     status: paid ? "paid" : "sent",
   });
 });

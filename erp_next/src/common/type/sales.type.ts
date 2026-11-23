@@ -77,6 +77,8 @@ export type Invoice = {
   issuedOn: string | null;
   dueOn: string | null;
   paidAmount: number;
+  /** Each payment received, so the ledger can post them on the right date. */
+  payments: { date: string; amount: number }[];
   status: InvoiceStatus;
 };
 
@@ -134,7 +136,7 @@ export type SalesAction =
   | { type: "placeOrder"; order: SalesOrder; notice: HandoffNotice }
   | { type: "requestInvoice"; invoice: Invoice }
   | { type: "issueInvoice"; id: string; issuedOn: string; dueOn: string }
-  | { type: "markPaid"; id: string };
+  | { type: "recordPayment"; id: string; amount: number; date: string };
 
 export type SalesContextValue = SalesState & {
   customersById: Record<string, Customer>;
@@ -149,8 +151,10 @@ export type SalesContextValue = SalesState & {
   convertQuote: (id: string) => ConvertResult;
   /** Asks Finance to invoice a shipped order. */
   signalFinance: (orderId: string) => void;
+  /** Finance issues the invoice for a request from Sales. */
   issueInvoice: (id: string) => void;
-  markPaid: (id: string) => void;
+  /** Finance records money received. The invoice becomes paid once the balance reaches zero. */
+  recordPayment: (id: string, amount: number) => void;
 };
 
 export type ItemsBySku = Record<string, StockItem>;

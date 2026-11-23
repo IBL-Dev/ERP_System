@@ -48,3 +48,25 @@ export function toMinutes(hhmm: string): number {
 export function formatHours(minutes: number): string {
   return `${Math.floor(minutes / 60)}h ${String(minutes % 60).padStart(2, "0")}m`;
 }
+
+/** "2026-11-16" -> "2026-11" */
+export const monthOf = (isoDate: string) => isoDate.slice(0, 7);
+
+/** Whole months from period `from` to period `to`, both "YYYY-MM". */
+export function monthsBetween(from: string, to: string): number {
+  const [fy, fm] = from.split("-").map(Number);
+  const [ty, tm] = to.split("-").map(Number);
+  return (ty - fy) * 12 + (tm - fm);
+}
+
+/** "2026-11" + 1 -> "2026-12" */
+export function addMonths(period: string, months: number): string {
+  const [y, m] = period.split("-").map(Number);
+  const index = y * 12 + (m - 1) + months;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+/** "2026-02" -> "2026-02-28" */
+export function endOfMonth(period: string): string {
+  return addDays(`${addMonths(period, 1)}-01`, -1);
+}

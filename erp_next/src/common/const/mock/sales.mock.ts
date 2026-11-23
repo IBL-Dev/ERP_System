@@ -116,6 +116,7 @@ const invoiceFor = (orderId: string, id: string, partial: Partial<Invoice>): Inv
     issuedOn: null,
     dueOn: null,
     paidAmount: 0,
+    payments: [],
     status: "requested",
     ...partial,
   };
@@ -127,6 +128,7 @@ const INVOICES: Invoice[] = [
   invoiceFor("SO-6990", "I-9003", { requestedOn: "2026-11-06", status: "requested" }),
 ];
 INVOICES[1].paidAmount = INVOICES[1].amount;
+INVOICES[1].payments = [{ date: addDays(INVOICES[1].issuedOn ?? "2026-10-12", 8), amount: INVOICES[1].amount }];
 for (const inv of INVOICES) {
   const order = ORDERS.find((o) => o.id === inv.orderId);
   if (order) order.invoiceId = inv.id;
