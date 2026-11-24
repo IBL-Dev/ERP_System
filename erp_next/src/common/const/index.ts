@@ -3,6 +3,7 @@
 export * from "./app.const";
 export * from "./auth.const";
 export * from "./date.const";
+export * from "./finance.const";
 export * from "./hr.const";
 export * from "./inventory.const";
 export * from "./menu.const";

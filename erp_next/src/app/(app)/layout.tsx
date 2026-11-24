@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
+import { AppProviders } from "@/components/layout/app-shell/AppProviders";
 import { AppShell } from "@/components/layout/app-shell/AppShell";
-import { InventoryProvider } from "@/features/inventory/InventoryProvider";
 
-/** Inventory state lives here (not in /inventory) so Sales can read live stock and hand orders off to it. */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <InventoryProvider>
+    <AppProviders>
       <AppShell>{children}</AppShell>
-    </InventoryProvider>
+    </AppProviders>
   );
 }

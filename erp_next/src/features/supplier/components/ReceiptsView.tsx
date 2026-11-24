@@ -82,7 +82,7 @@ function ConfirmReceiptCard({ po, onDone }: { po: PurchaseOrder; onDone: (messag
 }
 
 export function ReceiptsView() {
-  const { orders, paymentNotes, markNotePaid } = useSupplier();
+  const { orders, paymentNotes } = useSupplier();
   const { itemsBySku, movements } = useInventory();
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -111,16 +111,6 @@ export function ReceiptsView() {
     { key: "sent", header: "Sent", cell: (n) => formatDate(n.sentOn) },
     { key: "due", header: "Pay by", cell: (n) => formatDate(n.dueOn) },
     { key: "status", header: "Status", cell: (n) => <StatusBadge meta={PAYMENT_NOTE_STATUS_META[noteDisplayStatus(n)]} /> },
-    {
-      key: "action",
-      header: `${FINANCE_TEAM} reply (demo)`,
-      cell: (n) =>
-        n.status === "sent" ? (
-          <Button size="sm" variant="secondary" onClick={() => markNotePaid(n.id)}>Mark paid</Button>
-        ) : (
-          <span className="text-sm text-ink-muted">Done</span>
-        ),
-    },
   ];
 
   return (
@@ -167,7 +157,10 @@ export function ReceiptsView() {
 
       <section aria-labelledby="notes">
         <h2 id="notes" className="mb-3 font-semibold">Payment notes to {FINANCE_TEAM}</h2>
-        <Notice>Until the Finance department is built, the last column stands in for Finance recording the payment.</Notice>
+        <Notice>
+          {FINANCE_TEAM} approves, schedules and pays these in{" "}
+          <Link href={ROUTES.finance.payables} className="text-accent hover:underline">Finance, Accounts payable</Link>.
+        </Notice>
         <DataTable caption="Supplier payment notes" columns={noteColumns} rows={paymentNotes} rowKey={(n) => n.id} empty="No payment notes yet." />
       </section>
     </>
