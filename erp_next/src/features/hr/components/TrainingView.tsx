@@ -15,10 +15,13 @@ import { formatDate } from "@/lib/date";
 import { useHr } from "../HrProvider";
 import { trainingStatus } from "../utils";
 import { EmployeeLink } from "./EmployeeLink";
+import { TrainingEditor } from "./TrainingEditor";
 
 export function TrainingView() {
   const { training, completeTraining } = useHr();
   const [filter, setFilter] = useState<TrainingFilter>("all");
+  // "new" opens the add form; a course id opens the editor for that course.
+  const [editor, setEditor] = useState<"new" | string | null>(null);
 
   const rows = useMemo(() => training.filter((t) => filter === "all" || trainingStatus(t) === filter), [training, filter]);
 
@@ -26,6 +29,7 @@ export function TrainingView() {
   const overdue = training.filter((t) => trainingStatus(t) === "overdue").length;
   const hours = training.filter((t) => t.completedOn).reduce((total, t) => total + t.hours, 0);
   const rate = training.length ? Math.round((completed / training.length) * 100) : 0;
+  const editing = editor && editor !== "new" ? training.find((t) => t.id === editor) : undefined;
 
   const columns: Column<Training>[] = [
     { key: "emp", header: "Employee", cell: (t) => <EmployeeLink id={t.employeeId} showTitle /> },
@@ -37,18 +41,23 @@ export function TrainingView() {
     {
       key: "action",
       header: "Action",
-      cell: (t) =>
-        t.completedOn ? (
-          <span className="text-sm text-ink-muted">Done</span>
-        ) : (
-          <Button size="sm" variant="secondary" onClick={() => completeTraining(t.id)}>Mark complete</Button>
-        ),
+      cell: (t) => (
+        <div className="flex gap-2">
+          {!t.completedOn && <Button size="sm" variant="secondary" onClick={() => completeTraining(t.id)}>Mark complete</Button>}
+          <Button size="sm" variant="secondary" onClick={() => setEditor(t.id)}>Edit</Button>
+        </div>
+      ),
     },
   ];
 
   return (
     <>
-      <PageHeader title="Training" code="HR07" description="Courses assigned to employees, with due dates and completion." />
+      <PageHeader
+        title="Training"
+        code="HR07"
+        description="Courses assigned to employees, with due dates and completion. Add a course, or edit an existing one."
+        actions={editor === null && <Button onClick={() => setEditor("new")}>Add training</Button>}
+      />
 
       <StatGrid>
         <StatTile label="Completion rate" value={`${rate}%`} hint={`${completed} of ${training.length} courses`} />
@@ -56,6 +65,9 @@ export function TrainingView() {
         <StatTile label="Training hours done" value={hours} />
         <StatTile label="Courses assigned" value={training.length} />
       </StatGrid>
+
+      {editor === "new" && <TrainingEditor onDone={() => setEditor(null)} />}
+      {editing && <TrainingEditor key={editing.id} training={editing} onDone={() => setEditor(null)} />}
 
       <FilterBar>
         <Select variant="filter" id="train-filter" label="Status" value={filter} onChange={setFilter} options={TRAINING_FILTERS} />

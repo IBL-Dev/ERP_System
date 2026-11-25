@@ -13,6 +13,7 @@ import type {
   Employee,
   Goal,
   GoalStatus,
+  GoalTask,
   LeaveRequest,
   LeaveType,
   Training,
@@ -34,6 +35,7 @@ export function workedMinutes(r: AttendanceRecord): number | null {
 }
 
 export function overtimeMinutes(r: AttendanceRecord): number {
+  if (r.overtimeMinutes !== undefined) return r.overtimeMinutes;
   const worked = workedMinutes(r);
   return worked === null ? 0 : Math.max(0, worked - STANDARD_PAID_MINUTES);
 }
@@ -72,4 +74,34 @@ export function goalStatus(goal: Goal): GoalStatus {
 export function trainingStatus(t: Training): TrainingStatus {
   if (t.completedOn) return "completed";
   return t.dueDate < DEMO_TODAY ? "overdue" : "scheduled";
+}
+
+// ---------- reporting lines ----------
+/** Everyone who reports to `id`, directly or through someone else. */
+export function subordinateIds(employees: Employee[], id: string): string[] {
+  const result: string[] = [];
+  const queue = [id];
+  while (queue.length) {
+    const current = queue.shift()!;
+    for (const e of employees) {
+      if (e.managerId === current && !result.includes(e.id)) {
+        result.push(e.id);
+        queue.push(e.id);
+      }
+    }
+  }
+  return result;
+}
+
+/** People an employee can be made to report to: anyone except themselves and their own reports. */
+export function possibleManagers(employees: Employee[], id: string): Employee[] {
+  const blocked = new Set([id, ...subordinateIds(employees, id)]);
+  return employees.filter((e) => !blocked.has(e.id));
+}
+
+// ---------- goals ----------
+/** Percent of to-do points done, or null when the goal has no to-do list. */
+export function progressFromTasks(tasks: GoalTask[]): number | null {
+  if (tasks.length === 0) return null;
+  return Math.round((tasks.filter((t) => t.done).length / tasks.length) * 100);
 }

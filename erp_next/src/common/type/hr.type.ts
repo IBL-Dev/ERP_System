@@ -39,6 +39,8 @@ export type AttendanceRecord = {
   clockOut: string | null; // HH:MM
   absent?: boolean;
   note?: string;
+  /** Overtime entered by hand, in minutes. When absent, overtime is worked out from the times. */
+  overtimeMinutes?: number;
 };
 
 export type AttendanceStatus = "on-time" | "late" | "open" | "absent";
@@ -61,12 +63,21 @@ export type LeaveRequest = {
 
 export type Holiday = { date: string; name: string };
 
+/** A comment on a goal or a review. */
+export type HrComment = { id: string; by: string; at: string; text: string };
+
+/** One point on a goal's to-do list. */
+export type GoalTask = { id: string; text: string; done: boolean };
+
 export type Goal = {
   id: string;
   employeeId: string;
   title: string;
   due: string;
-  progress: number; // 0-100
+  /** 0-100. Worked out from the to-do list when the goal has one; otherwise set by hand. */
+  progress: number;
+  tasks: GoalTask[];
+  comments: HrComment[];
 };
 
 export type GoalStatus = "done" | "overdue" | "in-progress";
@@ -80,6 +91,7 @@ export type Review = {
   cycle: string;
   stage: ReviewStage;
   rating: number | null; // 1-5
+  comments: HrComment[];
 };
 
 export type Training = {
@@ -130,15 +142,43 @@ export type NewEmployee = {
   name: string;
   jobTitle: string;
   department: Department;
+  /** Who the employee reports to. */
+  managerId: string;
   hireDate: string;
   salary: number;
   email: string;
 };
 
+/** Fields that can be changed on an existing employee record. */
+export type EmployeePatch = Partial<
+  Pick<Employee, "name" | "email" | "phone" | "address" | "dateOfBirth" | "emergencyContact" | "jobTitle" | "department" | "managerId" | "contract">
+>;
+
+/** One attendance record, entered or corrected by hand. */
+export type AttendanceInput = {
+  employeeId: string;
+  date: string;
+  shift: ShiftId;
+  absent: boolean;
+  clockIn: string | null;
+  clockOut: string | null;
+  /** Minutes; null means work it out from the times. */
+  overtimeMinutes: number | null;
+  note: string;
+};
+
+export type NewGoal = { employeeId: string; title: string; due: string; tasks: string[] };
+
+export type NewTraining = { employeeId: string; course: string; hours: number; dueDate: string };
+
+export type TrainingPatch = Partial<Pick<Training, "course" | "hours" | "dueDate" | "completedOn">>;
+
 export type NewLeave = { type: LeaveType; from: string; to: string; reason: string };
 
 export type HrAction =
   | { type: "addEmployee"; employee: Employee }
+  | { type: "updateEmployee"; id: string; patch: EmployeePatch }
+  | { type: "saveAttendance"; record: AttendanceRecord }
   | { type: "recordSalaryChange"; employeeId: string; effective: string; amount: number; reason: string }
   | { type: "clockIn"; employeeId: string; date: string; time: string }
   | { type: "clockOut"; employeeId: string; date: string; time: string }
@@ -146,6 +186,13 @@ export type HrAction =
   | { type: "decideLeave"; id: string; decision: "approved" | "rejected"; byId: string }
   | { type: "addGoal"; goal: Goal }
   | { type: "setGoalProgress"; id: string; progress: number }
+  | { type: "toggleGoalTask"; goalId: string; taskId: string }
+  | { type: "addGoalTask"; goalId: string; task: GoalTask }
+  | { type: "removeGoalTask"; goalId: string; taskId: string }
+  | { type: "addGoalComment"; goalId: string; comment: HrComment }
+  | { type: "addReviewComment"; reviewId: string; comment: HrComment }
+  | { type: "addTraining"; training: Training }
+  | { type: "updateTraining"; id: string; patch: TrainingPatch }
   | { type: "advanceReview"; id: string; rating?: number }
   | { type: "completeTraining"; id: string; date: string }
   | { type: "finalizePayroll" };
@@ -155,14 +202,26 @@ export type HrContextValue = HrState & {
   /** The signed-in user's employee record id. */
   meId: string;
   addEmployee: (input: NewEmployee) => string;
+  /** Returns an error message, or null when the change was saved. */
+  updateEmployee: (id: string, patch: EmployeePatch) => string | null;
+  /** Adds or corrects one employee's record for one day. Returns an error message, or null. */
+  saveAttendance: (input: AttendanceInput) => string | null;
   recordSalaryChange: (employeeId: string, amount: number, effective: string, reason: string) => void;
   clockIn: () => void;
   clockOut: () => void;
   requestLeave: (input: NewLeave) => void;
   decideLeave: (id: string, decision: "approved" | "rejected") => void;
-  addGoal: (input: Omit<Goal, "id" | "progress">) => void;
+  addGoal: (input: NewGoal) => void;
+  /** Only used for goals without a to-do list. */
   setGoalProgress: (id: string, progress: number) => void;
+  toggleGoalTask: (goalId: string, taskId: string) => void;
+  addGoalTask: (goalId: string, text: string) => void;
+  removeGoalTask: (goalId: string, taskId: string) => void;
+  addGoalComment: (goalId: string, text: string) => void;
   advanceReview: (id: string, rating?: number) => void;
+  addReviewComment: (reviewId: string, text: string) => void;
   completeTraining: (id: string) => void;
+  addTraining: (input: NewTraining) => void;
+  updateTraining: (id: string, patch: TrainingPatch) => void;
   finalizePayroll: () => void;
 };

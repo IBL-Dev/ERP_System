@@ -6,6 +6,7 @@ import type { AttendanceRange, AttendanceRecord, Column } from "@/common/type";
 import { Button } from "@/components/ui/Button";
 import { DataTable } from "@/components/ui/DataTable";
 import { FilterBar } from "@/components/ui/FilterBar";
+import { Notice } from "@/components/ui/Notice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { StatGrid } from "@/components/ui/StatGrid";
@@ -14,12 +15,16 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDate, formatHours } from "@/lib/date";
 import { useHr } from "../HrProvider";
 import { attendanceStatus, overtimeMinutes, workedMinutes } from "../utils";
+import { AttendanceEditor } from "./AttendanceEditor";
 import { EmployeeLink } from "./EmployeeLink";
 
 export function AttendanceView() {
   const { attendance, employees, employeesById, meId, clockIn, clockOut } = useHr();
   const [who, setWho] = useState("all");
   const [range, setRange] = useState<AttendanceRange>("all");
+  // "new" opens a blank editor; a record's key opens it for that record.
+  const [editor, setEditor] = useState<"new" | string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const mine = attendance.find((r) => r.employeeId === meId && r.date === DEMO_TODAY);
   const canClockOut = Boolean(mine?.clockIn && !mine.clockOut);
@@ -42,6 +47,9 @@ export function AttendanceView() {
   const today = attendance.filter((r) => r.date === DEMO_TODAY);
   const overtimeTotal = attendance.reduce((total, r) => total + overtimeMinutes(r), 0);
   const absences = attendance.filter((r) => r.absent).length;
+
+  const recordKey = (r: AttendanceRecord) => `${r.employeeId}|${r.date}`;
+  const editing = editor && editor !== "new" ? attendance.find((r) => recordKey(r) === editor) : undefined;
 
   const columns: Column<AttendanceRecord>[] = [
     { key: "date", header: "Date", cell: (r) => formatDate(r.date) },
@@ -75,7 +83,13 @@ export function AttendanceView() {
       align: "right",
       cell: (r) => {
         const m = overtimeMinutes(r);
-        return m ? formatHours(m) : "-";
+        if (!m) return "-";
+        return (
+          <div>
+            <p>{formatHours(m)}</p>
+            {r.overtimeMinutes !== undefined && <p className="text-xs text-ink-muted">Entered by hand</p>}
+          </div>
+        );
       },
     },
     {
@@ -86,6 +100,22 @@ export function AttendanceView() {
           <StatusBadge meta={ATTENDANCE_META[attendanceStatus(r)]} />
           {r.note && <p className="text-xs text-ink-muted">{r.note}</p>}
         </div>
+      ),
+    },
+    {
+      key: "edit",
+      header: "Action",
+      cell: (r) => (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            setNotice(null);
+            setEditor(recordKey(r));
+          }}
+        >
+          Edit
+        </Button>
       ),
     },
   ];
@@ -100,6 +130,17 @@ export function AttendanceView() {
           <>
             <Button onClick={clockIn} disabled={Boolean(mine)}>Clock in</Button>
             <Button variant="secondary" onClick={clockOut} disabled={!canClockOut}>Clock out</Button>
+            {editor === null && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setNotice(null);
+                  setEditor("new");
+                }}
+              >
+                Add record
+              </Button>
+            )}
           </>
         }
       />
@@ -111,13 +152,36 @@ export function AttendanceView() {
         <StatTile label="Absences" value={absences} hint="In the logs below" />
       </StatGrid>
 
+      <Notice>{notice}</Notice>
+
+      {editor === "new" && (
+        <AttendanceEditor
+          onCancel={() => setEditor(null)}
+          onSaved={(message) => {
+            setNotice(message);
+            setEditor(null);
+          }}
+        />
+      )}
+      {editing && (
+        <AttendanceEditor
+          key={editor}
+          record={editing}
+          onCancel={() => setEditor(null)}
+          onSaved={(message) => {
+            setNotice(message);
+            setEditor(null);
+          }}
+        />
+      )}
+
       <FilterBar>
         <Select variant="filter" id="att-who" label="Employee" value={who} onChange={setWho} options={whoOptions} />
         <Select variant="filter" id="att-range" label="Period" value={range} onChange={setRange} options={ATTENDANCE_RANGES} />
       </FilterBar>
 
       <DataTable caption="Attendance logs" columns={columns} rows={rows} rowKey={(r) => r.id} empty="No attendance logs for this selection." />
-      <p className="mt-3 text-xs text-ink-muted">Clock in and out records you as the signed-in employee, using your device time.</p>
+      <p className="mt-3 text-xs text-ink-muted">Clock in and out records you as the signed-in employee, using your device time. Use Edit to correct one employee at a time: times, shift, overtime and notes.</p>
     </>
   );
 }

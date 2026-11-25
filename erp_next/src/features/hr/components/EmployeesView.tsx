@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
-import { CONTRACT_LABEL, DEMO_TODAY, DEPARTMENT_FILTERS, DEPARTMENT_LABEL, DEPARTMENT_OPTIONS, PANEL_CLASS, ROUTES } from "@/common/const";
+import { CONTRACT_LABEL, DEMO_TODAY, DEPARTMENT_FILTERS, DEPARTMENT_HEAD, DEPARTMENT_LABEL, DEPARTMENT_OPTIONS, PANEL_CLASS, ROUTES } from "@/common/const";
 import type { Column, Department, DepartmentFilter, Employee } from "@/common/type";
 import { Button } from "@/components/ui/Button";
 import { DataTable } from "@/components/ui/DataTable";
@@ -23,17 +23,21 @@ type FormValues = {
   name: string;
   jobTitle: string;
   department: Department;
+  managerId: string;
   hireDate: string;
   salary: string;
   email: string;
 };
 
-const EMPTY_FORM: FormValues = { name: "", jobTitle: "", department: "inventory", hireDate: DEMO_TODAY, salary: "", email: "" };
+const EMPTY_FORM: FormValues = { name: "", jobTitle: "", department: "inventory", managerId: DEPARTMENT_HEAD.inventory, hireDate: DEMO_TODAY, salary: "", email: "" };
 
 function AddEmployeeForm({ onCancel }: { onCancel: () => void }) {
-  const { addEmployee } = useHr();
+  const { employees, addEmployee } = useHr();
   const router = useRouter();
   const [v, setV] = useState<FormValues>(EMPTY_FORM);
+  // Once someone picks a manager by hand, changing the department no longer overrides it.
+  const [managerPicked, setManagerPicked] = useState(false);
+  const managerOptions = employees.map((e) => ({ value: e.id, label: `${e.name} – ${e.jobTitle}` }));
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
   const set = <K extends keyof FormValues>(key: K) => (value: FormValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
   const onText = (key: keyof FormValues) => (e: React.ChangeEvent<HTMLInputElement>) => set(key)(e.target.value as never);
@@ -53,6 +57,7 @@ function AddEmployeeForm({ onCancel }: { onCancel: () => void }) {
       name: v.name.trim(),
       jobTitle: v.jobTitle.trim(),
       department: v.department,
+      managerId: v.managerId,
       hireDate: v.hireDate,
       salary,
       email: v.email.trim() || "-",
@@ -70,8 +75,26 @@ function AddEmployeeForm({ onCancel }: { onCancel: () => void }) {
         <Field label="Job title" htmlFor="new-title" error={errors.jobTitle}>
           <Input id="new-title" value={v.jobTitle} onChange={onText("jobTitle")} invalid={Boolean(errors.jobTitle)} />
         </Field>
-        <Field label="Department" htmlFor="new-dept" hint="The department head becomes the manager.">
-          <Select id="new-dept" value={v.department} options={DEPARTMENT_OPTIONS} onChange={set("department")} />
+        <Field label="Department" htmlFor="new-dept">
+          <Select
+            id="new-dept"
+            value={v.department}
+            options={DEPARTMENT_OPTIONS}
+            onChange={(department) =>
+              setV((prev) => ({ ...prev, department, managerId: managerPicked ? prev.managerId : DEPARTMENT_HEAD[department] }))
+            }
+          />
+        </Field>
+        <Field label="Reports to" htmlFor="new-manager" hint="Starts as the department head. Choose someone else if needed.">
+          <Select
+            id="new-manager"
+            value={v.managerId}
+            options={managerOptions}
+            onChange={(managerId) => {
+              setManagerPicked(true);
+              set("managerId")(managerId);
+            }}
+          />
         </Field>
         <Field label="Hire date" htmlFor="new-hire" error={errors.hireDate}>
           <Input id="new-hire" type="date" value={v.hireDate} onChange={onText("hireDate")} invalid={Boolean(errors.hireDate)} />

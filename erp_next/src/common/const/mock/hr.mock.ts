@@ -7,6 +7,7 @@ import type {
   Department,
   Employee,
   Goal,
+  GoalTask,
   LeaveRequest,
   LeaveType,
   Review,
@@ -125,22 +126,101 @@ const LEAVE: LeaveRequest[] = [
 ];
 
 // ---------- talent ----------
+function goal(
+  id: string,
+  employeeId: string,
+  title: string,
+  due: string,
+  points: [text: string, done: boolean][],
+  comments: [by: string, at: string, text: string][] = [],
+): Goal {
+  const tasks: GoalTask[] = points.map(([text, done], i) => ({ id: `T${i + 1}`, text, done }));
+  return {
+    id,
+    employeeId,
+    title,
+    due,
+    tasks,
+    progress: Math.round((tasks.filter((t) => t.done).length / tasks.length) * 100),
+    comments: comments.map(([by, at, text], i) => ({ id: `C${i + 1}`, by, at, text })),
+  };
+}
+
 const GOALS: Goal[] = [
-  { id: "G-001", employeeId: "EMP-1004", title: "Cut stock-count variance below 1%", due: "2026-12-31", progress: 60 },
-  { id: "G-002", employeeId: "EMP-1007", title: "Complete warehouse re-layout", due: "2026-11-30", progress: 85 },
-  { id: "G-003", employeeId: "EMP-1008", title: "Introduce weekly cycle counts", due: "2026-10-31", progress: 70 },
-  { id: "G-004", employeeId: "EMP-1010", title: "Shorten month-end close to 5 days", due: "2026-12-15", progress: 40 },
-  { id: "G-005", employeeId: "EMP-1013", title: "Win 10 new accounts", due: "2026-12-31", progress: 100 },
-  { id: "G-006", employeeId: "EMP-1011", title: "Digitise personnel files", due: "2027-03-31", progress: 20 },
+  goal("G-001", "EMP-1004", "Cut stock-count variance below 1%", "2026-12-31", [
+    ["Count high-value shelves weekly", true],
+    ["Fix mislabelled shelf locations", true],
+    ["Train staff on scanner counts", true],
+    ["Review the variance report every month", false],
+    ["Stay under 1% for two months in a row", false],
+  ], [["Marcus Hale", "2026-11-05", "Good start. Keep the monthly report short and focus on the top five items."]]),
+  goal("G-002", "EMP-1007", "Complete warehouse re-layout", "2026-11-30", [
+    ["Agree the new floor plan", true],
+    ["Move fast-moving items near the dock", true],
+    ["Relabel all racks", true],
+    ["Update the location codes in the system", true],
+    ["Retrain pickers on the new routes", true],
+    ["Sign off the layout with the safety officer", false],
+  ]),
+  goal("G-003", "EMP-1008", "Introduce weekly cycle counts", "2026-10-31", [
+    ["Write the counting procedure", true],
+    ["Set up the weekly count calendar", true],
+    ["Run the first four counts", true],
+    ["Report the results to the manager", false],
+  ], [["Sofia Lindqvist", "2026-11-02", "Deadline has passed. Please send the results report this week."]]),
+  goal("G-004", "EMP-1010", "Shorten month-end close to 5 days", "2026-12-15", [
+    ["Map the current closing steps", true],
+    ["Automate bank reconciliation", true],
+    ["Set a cut-off for supplier invoices", false],
+    ["Agree the new calendar with departments", false],
+    ["Run a trial close", false],
+  ]),
+  goal("G-005", "EMP-1013", "Win 10 new accounts", "2026-12-31", [
+    ["Build the prospect list", true],
+    ["Make 50 introduction calls", true],
+    ["Send 20 quotes", true],
+    ["Close 5 accounts", true],
+    ["Close 10 accounts", true],
+  ]),
+  goal("G-006", "EMP-1011", "Digitise personnel files", "2027-03-31", [
+    ["Choose the scanning tool", true],
+    ["Scan current employee files", false],
+    ["Scan former employee files", false],
+    ["Check the scans against the originals", false],
+    ["Archive the paper files", false],
+  ]),
 ];
 
+const review = (
+  id: string,
+  employeeId: string,
+  reviewerId: string,
+  stage: Review["stage"],
+  rating: number | null,
+  comments: [by: string, at: string, text: string][] = [],
+): Review => ({
+  id,
+  employeeId,
+  reviewerId,
+  cycle: "H2 2026",
+  stage,
+  rating,
+  comments: comments.map(([by, at, text], i) => ({ id: `C${i + 1}`, by, at, text })),
+});
+
 const REVIEWS: Review[] = [
-  { id: "R-001", employeeId: "EMP-1007", reviewerId: "EMP-1004", cycle: "H2 2026", stage: "manager-review", rating: null },
-  { id: "R-002", employeeId: "EMP-1008", reviewerId: "EMP-1004", cycle: "H2 2026", stage: "self-review", rating: null },
-  { id: "R-003", employeeId: "EMP-1009", reviewerId: "EMP-1007", cycle: "H2 2026", stage: "self-review", rating: null },
-  { id: "R-004", employeeId: "EMP-1010", reviewerId: "EMP-1002", cycle: "H2 2026", stage: "completed", rating: 4 },
-  { id: "R-005", employeeId: "EMP-1013", reviewerId: "EMP-1006", cycle: "H2 2026", stage: "completed", rating: 5 },
-  { id: "R-006", employeeId: "EMP-1004", reviewerId: "EMP-1001", cycle: "H2 2026", stage: "manager-review", rating: null },
+  review("R-001", "EMP-1007", "EMP-1004", "manager-review", null, [
+    ["Tomas Alvarez", "2026-11-10", "Led the re-layout and cut pick times. I would like more help from the team on documentation."],
+  ]),
+  review("R-002", "EMP-1008", "EMP-1004", "self-review", null),
+  review("R-003", "EMP-1009", "EMP-1007", "self-review", null),
+  review("R-004", "EMP-1010", "EMP-1002", "completed", 4, [
+    ["Priya Nair", "2026-11-01", "Reliable and accurate. Next step: own the month-end close."],
+  ]),
+  review("R-005", "EMP-1013", "EMP-1006", "completed", 5, [
+    ["Elena Petrova", "2026-10-28", "Exceeded the account target and mentors new joiners."],
+  ]),
+  review("R-006", "EMP-1004", "EMP-1001", "manager-review", null),
 ];
 
 const TRAINING: Training[] = [

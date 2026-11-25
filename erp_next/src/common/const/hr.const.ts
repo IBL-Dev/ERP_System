@@ -12,6 +12,7 @@ import type {
   SelectOption,
   ShiftDefinition,
   ShiftId,
+  Contract,
   ToneMeta,
   TrainingFilter,
   TrainingStatus,
@@ -163,3 +164,18 @@ export const TRAINING_FILTERS: readonly SelectOption<TrainingFilter>[] = [
   { value: "overdue", label: "Overdue" },
   { value: "completed", label: "Completed" },
 ];
+
+// ---------- editing forms ----------
+export const SHIFT_OPTIONS: readonly SelectOption<ShiftId>[] = (Object.keys(SHIFTS) as ShiftId[]).map((value) => ({
+  value,
+  label: `${SHIFTS[value].label} (${SHIFTS[value].start}-${SHIFTS[value].end})`,
+}));
+
+export const ATTENDANCE_ENTRY_OPTIONS: readonly SelectOption[] = [
+  { value: "present", label: "Present" },
+  { value: "absent", label: "Absent" },
+];
+
+export const CONTRACT_TYPE_OPTIONS: readonly SelectOption<Contract["type"]>[] = (
+  Object.keys(CONTRACT_LABEL) as Contract["type"][]
+).map((value) => ({ value, label: CONTRACT_LABEL[value] }));
