@@ -1,0 +1,11 @@
+// All shared system types live here. Import them as: import type { Employee } from "@/common/type";
+export type * from "./auth.type";
+export type * from "./finance.type";
+export type * from "./hr.type";
+export type * from "./inventory.type";
+export type * from "./navigation.type";
+export type * from "./sales.type";
+export type * from "./session.type";
+export type * from "./supplier.type";
+export type * from "./theme.type";
+export type * from "./ui.type";

@@ -1,32 +1,14 @@
 "use client";
 
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { DEMO_TODAY } from "@/common/const";
+import { INITIAL_STATE } from "@/common/const/mock/hr.mock";
+import type { Employee, HrContextValue, LeaveRequest } from "@/common/type";
 import { getSession } from "@/features/session/session";
-import { DEMO_TODAY, addDays } from "@/lib/date";
-import { INITIAL_STATE } from "./mock-data";
+import { addDays, toMinutes } from "@/lib/date";
+import { nextNumber } from "@/lib/ids";
 import { hrReducer } from "./reducer";
-import type { Department, Employee, Goal, HrState, LeaveRequest, LeaveType } from "./types";
-import { DEPARTMENT_HEAD, countWorkingDays } from "./utils";
-
-type NewEmployee = { name: string; jobTitle: string; department: Department; hireDate: string; salary: number; email: string };
-type NewLeave = { type: LeaveType; from: string; to: string; reason: string };
-
-type HrContextValue = HrState & {
-  employeesById: Record<string, Employee>;
-  /** The signed-in user's employee record id. */
-  meId: string;
-  addEmployee: (input: NewEmployee) => string;
-  recordSalaryChange: (employeeId: string, amount: number, effective: string, reason: string) => void;
-  clockIn: () => void;
-  clockOut: () => void;
-  requestLeave: (input: NewLeave) => void;
-  decideLeave: (id: string, decision: "approved" | "rejected") => void;
-  addGoal: (input: Omit<Goal, "id" | "progress">) => void;
-  setGoalProgress: (id: string, progress: number) => void;
-  advanceReview: (id: string, rating?: number) => void;
-  completeTraining: (id: string) => void;
-  finalizePayroll: () => void;
-};
+import { countWorkingDays, subordinateIds } from "./utils";
 
 const HrContext = createContext<HrContextValue | null>(null);
 
@@ -41,7 +23,7 @@ const nowHHMM = () => {
  */
 export function HrProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(hrReducer, INITIAL_STATE);
-  const meId = getSession().employeeId;
+  const { employeeId: meId, name: meName } = getSession();
 
   const value = useMemo<HrContextValue>(
     () => ({
@@ -57,7 +39,7 @@ export function HrProvider({ children }: { children: ReactNode }) {
           name: input.name,
           jobTitle: input.jobTitle,
           department: input.department,
-          managerId: DEPARTMENT_HEAD[input.department],
+          managerId: input.managerId,
           email: input.email,
           phone: "-",
           address: "-",
@@ -69,6 +51,41 @@ export function HrProvider({ children }: { children: ReactNode }) {
         };
         dispatch({ type: "addEmployee", employee });
         return id;
+      },
+
+      updateEmployee: (id, patch) => {
+        if (patch.managerId !== undefined && patch.managerId !== null) {
+          if (patch.managerId === id) return "An employee cannot report to themselves.";
+          if (subordinateIds(state.employees, id).includes(patch.managerId)) {
+            return "That person already reports to this employee, directly or through someone else.";
+          }
+        }
+        if (patch.contract?.end && patch.contract.end < patch.contract.start) return "The contract end date must be after its start date.";
+        dispatch({ type: "updateEmployee", id, patch });
+        return null;
+      },
+
+      saveAttendance: (input) => {
+        if (!input.absent) {
+          if (!input.clockIn) return "Enter the clock in time.";
+          if (input.clockOut && toMinutes(input.clockOut) <= toMinutes(input.clockIn)) return "Clock out must be after clock in.";
+        }
+        const existing = state.attendance.find((r) => r.employeeId === input.employeeId && r.date === input.date);
+        dispatch({
+          type: "saveAttendance",
+          record: {
+            id: existing?.id ?? `AT-${input.employeeId.slice(4)}-${input.date}`,
+            employeeId: input.employeeId,
+            date: input.date,
+            shift: input.shift,
+            clockIn: input.absent ? null : input.clockIn,
+            clockOut: input.absent ? null : input.clockOut,
+            ...(input.absent ? { absent: true } : {}),
+            ...(input.note.trim() ? { note: input.note.trim() } : {}),
+            ...(!input.absent && input.overtimeMinutes !== null ? { overtimeMinutes: input.overtimeMinutes } : {}),
+          },
+        });
+        return null;
       },
 
       recordSalaryChange: (employeeId, amount, effective, reason) =>
@@ -92,14 +109,48 @@ export function HrProvider({ children }: { children: ReactNode }) {
 
       decideLeave: (id, decision) => dispatch({ type: "decideLeave", id, decision, byId: meId }),
 
-      addGoal: (input) =>
-        dispatch({ type: "addGoal", goal: { ...input, id: `G-${String(state.goals.length + 1).padStart(3, "0")}`, progress: 0 } }),
+      addGoal: ({ employeeId, title, due, tasks }) =>
+        dispatch({
+          type: "addGoal",
+          goal: {
+            id: `G-${String(nextNumber(state.goals.map((g) => g.id), 0)).padStart(3, "0")}`,
+            employeeId,
+            title,
+            due,
+            progress: 0,
+            tasks: tasks.map((text, i) => ({ id: `T${i + 1}`, text, done: false })),
+            comments: [],
+          },
+        }),
       setGoalProgress: (id, progress) => dispatch({ type: "setGoalProgress", id, progress }),
+      toggleGoalTask: (goalId, taskId) => dispatch({ type: "toggleGoalTask", goalId, taskId }),
+      addGoalTask: (goalId, text) => {
+        const goal = state.goals.find((g) => g.id === goalId);
+        const id = `T${nextNumber((goal?.tasks ?? []).map((t) => `T-${t.id.slice(1)}`), 0)}`;
+        dispatch({ type: "addGoalTask", goalId, task: { id, text, done: false } });
+      },
+      removeGoalTask: (goalId, taskId) => dispatch({ type: "removeGoalTask", goalId, taskId }),
+      addGoalComment: (goalId, text) => {
+        const goal = state.goals.find((g) => g.id === goalId);
+        const id = `C${nextNumber((goal?.comments ?? []).map((c) => `C-${c.id.slice(1)}`), 0)}`;
+        dispatch({ type: "addGoalComment", goalId, comment: { id, by: meName, at: DEMO_TODAY, text } });
+      },
       advanceReview: (id, rating) => dispatch({ type: "advanceReview", id, rating }),
+      addReviewComment: (reviewId, text) => {
+        const review = state.reviews.find((r) => r.id === reviewId);
+        const id = `C${nextNumber((review?.comments ?? []).map((c) => `C-${c.id.slice(1)}`), 0)}`;
+        dispatch({ type: "addReviewComment", reviewId, comment: { id, by: meName, at: DEMO_TODAY, text } });
+      },
       completeTraining: (id) => dispatch({ type: "completeTraining", id, date: DEMO_TODAY }),
+      addTraining: (input) =>
+        dispatch({
+          type: "addTraining",
+          training: { id: `T-${String(nextNumber(state.training.map((t) => t.id), 0)).padStart(3, "0")}`, ...input, completedOn: null },
+        }),
+      updateTraining: (id, patch) => dispatch({ type: "updateTraining", id, patch }),
       finalizePayroll: () => dispatch({ type: "finalizePayroll" }),
     }),
-    [state, meId],
+    [state, meId, meName],
   );
 
   return <HrContext.Provider value={value}>{children}</HrContext.Provider>;

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { RATING_OPTIONS, REVIEW_META, REVIEW_STAGES } from "@/common/const";
+import type { Review } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Panel } from "@/components/ui/Panel";
+import { Select } from "@/components/ui/Select";
+import { StatGrid } from "@/components/ui/StatGrid";
 import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
-import { cn } from "@/lib/cn";
 import { useHr } from "../HrProvider";
-import type { Review } from "../types";
-import { REVIEW_META, REVIEW_STAGES } from "../utils";
+import { CommentThread } from "./CommentThread";
 import { EmployeeLink } from "./EmployeeLink";
 
 function ReviewAction({ review }: { review: Review }) {
@@ -23,47 +24,77 @@ function ReviewAction({ review }: { review: Review }) {
   if (review.stage === "manager-review") {
     return (
       <div className="flex items-center gap-2">
-        <label htmlFor={`rating-${review.id}`} className="sr-only">Rating</label>
-        <select id={`rating-${review.id}`} value={rating} onChange={(e) => setRating(e.target.value)} className={cn(controlClass, "h-7 text-xs")}>
-          <option value="">Rating</option>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>{n} of 5</option>
-          ))}
-        </select>
+        <Select variant="filter" controlSize="sm" id={`rating-${review.id}`} label="Rating" value={rating} onChange={setRating} options={RATING_OPTIONS} />
         <Button size="sm" disabled={!rating} onClick={() => advanceReview(review.id, Number(rating))}>Complete review</Button>
       </div>
     );
   }
-  return <span className="text-sm text-ink-muted">Done</span>;
+  return <span className="text-sm text-ink-muted">Review complete</span>;
+}
+
+function ReviewCard({ review }: { review: Review }) {
+  const { addReviewComment } = useHr();
+  return (
+    <Panel className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <EmployeeLink id={review.employeeId} showTitle />
+          <p className="mt-1 text-xs text-ink-muted">
+            {review.cycle}. Reviewer: <EmployeeLinkInline id={review.reviewerId} />
+          </p>
+        </div>
+        <div className="text-right">
+          <StatusBadge meta={REVIEW_META[review.stage]} />
+          {review.rating !== null && <p className="mt-1 text-sm font-medium">{review.rating} of 5</p>}
+        </div>
+      </div>
+
+      <ReviewAction review={review} />
+
+      <div>
+        <h4 className="mb-2 text-sm font-semibold">Comments</h4>
+        <CommentThread
+          label={`review ${review.id}`}
+          comments={review.comments}
+          onAdd={(text) => addReviewComment(review.id, text)}
+          placeholder="Write a comment on this review"
+        />
+      </div>
+    </Panel>
+  );
+}
+
+function EmployeeLinkInline({ id }: { id: string }) {
+  const { employeesById } = useHr();
+  return <>{employeesById[id]?.name ?? id}</>;
 }
 
 export function ReviewsView() {
   const { reviews } = useHr();
-
-  const columns: Column<Review>[] = [
-    { key: "emp", header: "Employee", cell: (r) => <EmployeeLink id={r.employeeId} showTitle /> },
-    { key: "reviewer", header: "Reviewer", cell: (r) => <EmployeeLink id={r.reviewerId} /> },
-    { key: "cycle", header: "Cycle", cell: (r) => r.cycle },
-    { key: "stage", header: "Stage", cell: (r) => <StatusBadge tone={REVIEW_META[r.stage].tone}>{REVIEW_META[r.stage].label}</StatusBadge> },
-    { key: "rating", header: "Rating", align: "right", cell: (r) => (r.rating ? `${r.rating} of 5` : "-") },
-    { key: "action", header: "Next step", cell: (r) => <ReviewAction review={r} /> },
-  ];
 
   return (
     <>
       <PageHeader
         title="Performance reviews"
         code="HR06"
-        description="Each review moves from the employee's self-review to the manager's rating."
+        description="Each review moves from the employee's self-review to the manager's rating. Add comments at any stage to record feedback."
       />
 
-      <div className="mb-5 grid gap-4 sm:grid-cols-3">
+      <StatGrid columns={3}>
         {REVIEW_STAGES.map((stage) => (
           <StatTile key={stage} label={REVIEW_META[stage].label} value={reviews.filter((r) => r.stage === stage).length} />
         ))}
-      </div>
+      </StatGrid>
 
-      <DataTable caption="Performance reviews" columns={columns} rows={reviews} rowKey={(r) => r.id} empty="No reviews in this cycle." />
+      {reviews.length === 0 ? (
+        <p className="text-sm text-ink-muted">No reviews in this cycle.</p>
+      ) : (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {reviews.map((r) => (
+            <ReviewCard key={r.id} review={r} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

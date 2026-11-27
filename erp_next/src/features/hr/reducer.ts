@@ -1,23 +1,34 @@
-import type { AttendanceRecord, Employee, Goal, HrState, LeaveRequest } from "./types";
-import { approverOf } from "./utils";
+import type { AttendanceRecord, Goal, HrAction, HrState } from "@/common/type";
+import { approverOf, progressFromTasks } from "./utils";
 
-export type HrAction =
-  | { type: "addEmployee"; employee: Employee }
-  | { type: "recordSalaryChange"; employeeId: string; effective: string; amount: number; reason: string }
-  | { type: "clockIn"; employeeId: string; date: string; time: string }
-  | { type: "clockOut"; employeeId: string; date: string; time: string }
-  | { type: "requestLeave"; request: LeaveRequest }
-  | { type: "decideLeave"; id: string; decision: "approved" | "rejected"; byId: string }
-  | { type: "addGoal"; goal: Goal }
-  | { type: "setGoalProgress"; id: string; progress: number }
-  | { type: "advanceReview"; id: string; rating?: number }
-  | { type: "completeTraining"; id: string; date: string }
-  | { type: "finalizePayroll" };
+/** Goals with a to-do list always take their percentage from it. */
+function withProgress(goal: Goal): Goal {
+  const progress = progressFromTasks(goal.tasks);
+  return progress === null ? goal : { ...goal, progress };
+}
+
+const changeGoal = (state: HrState, id: string, change: (g: Goal) => Goal): HrState => ({
+  ...state,
+  goals: state.goals.map((g) => (g.id === id ? withProgress(change(g)) : g)),
+});
 
 export function hrReducer(state: HrState, action: HrAction): HrState {
   switch (action.type) {
     case "addEmployee":
       return { ...state, employees: [...state.employees, action.employee] };
+
+    case "updateEmployee":
+      return { ...state, employees: state.employees.map((e) => (e.id === action.id ? { ...e, ...action.patch } : e)) };
+
+    case "saveAttendance": {
+      const exists = state.attendance.some((r) => r.employeeId === action.record.employeeId && r.date === action.record.date);
+      return exists
+        ? {
+            ...state,
+            attendance: state.attendance.map((r) => (r.employeeId === action.record.employeeId && r.date === action.record.date ? action.record : r)),
+          }
+        : { ...state, attendance: [action.record, ...state.attendance] };
+    }
 
     case "recordSalaryChange":
       return {
@@ -75,13 +86,40 @@ export function hrReducer(state: HrState, action: HrAction): HrState {
     }
 
     case "addGoal":
-      return { ...state, goals: [action.goal, ...state.goals] };
+      return { ...state, goals: [withProgress(action.goal), ...state.goals] };
 
     case "setGoalProgress":
+      // A goal with a to-do list keeps its automatic percentage.
       return {
         ...state,
-        goals: state.goals.map((g) => (g.id === action.id ? { ...g, progress: Math.min(100, Math.max(0, action.progress)) } : g)),
+        goals: state.goals.map((g) =>
+          g.id === action.id && g.tasks.length === 0 ? { ...g, progress: Math.min(100, Math.max(0, action.progress)) } : g,
+        ),
       };
+
+    case "toggleGoalTask":
+      return changeGoal(state, action.goalId, (g) => ({ ...g, tasks: g.tasks.map((t) => (t.id === action.taskId ? { ...t, done: !t.done } : t)) }));
+
+    case "addGoalTask":
+      return changeGoal(state, action.goalId, (g) => ({ ...g, tasks: [...g.tasks, action.task] }));
+
+    case "removeGoalTask":
+      return changeGoal(state, action.goalId, (g) => ({ ...g, tasks: g.tasks.filter((t) => t.id !== action.taskId) }));
+
+    case "addGoalComment":
+      return changeGoal(state, action.goalId, (g) => ({ ...g, comments: [action.comment, ...g.comments] }));
+
+    case "addReviewComment":
+      return {
+        ...state,
+        reviews: state.reviews.map((rv) => (rv.id === action.reviewId ? { ...rv, comments: [action.comment, ...rv.comments] } : rv)),
+      };
+
+    case "addTraining":
+      return { ...state, training: [action.training, ...state.training] };
+
+    case "updateTraining":
+      return { ...state, training: state.training.map((t) => (t.id === action.id ? { ...t, ...action.patch } : t)) };
 
     case "advanceReview":
       return {

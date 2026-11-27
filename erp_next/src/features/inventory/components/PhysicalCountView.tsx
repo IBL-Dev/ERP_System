@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { PANEL_CLASS, REASON_LABEL, REASON_OPTIONS } from "@/common/const";
+import type { Adjustment, AdjustmentReason, Column } from "@/common/type";
 import { Button } from "@/components/ui/Button";
-import { DataTable, type Column } from "@/components/ui/DataTable";
+import { DataTable } from "@/components/ui/DataTable";
 import { Field } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Input";
+import { Notice } from "@/components/ui/Notice";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { controlClass } from "@/components/ui/controls";
 import { cn } from "@/lib/cn";
+import { formatDateTime } from "@/lib/date";
+import { formatNumber } from "@/lib/format";
 import { useInventory } from "../InventoryProvider";
-import type { Adjustment, AdjustmentReason } from "../types";
-import { REASON_LABEL, formatDateTime, formatNumber } from "../utils";
 
 const signed = (n: number) => `${n > 0 ? "+" : ""}${formatNumber(n)}`;
 
@@ -23,6 +27,7 @@ export function PhysicalCountView() {
 
   const item = itemsBySku[sku];
   const system = item?.qty.available ?? 0;
+  const itemOptions = items.map((i) => ({ value: i.sku, label: `${i.sku} – ${i.name}` }));
 
   const raw = counted.trim() === "" ? null : Number(counted);
   const countedQty = raw !== null && Number.isInteger(raw) && raw >= 0 ? raw : null;
@@ -66,9 +71,7 @@ export function PhysicalCountView() {
         description="Compare what you counted on the shelf with the system quantity and post the difference."
       />
 
-      <p role="status" className={cn("mb-4 border-l-4 border-accent bg-panel px-3 py-2 text-sm", !notice && "hidden")}>
-        {notice}
-      </p>
+      <Notice>{notice}</Notice>
 
       <div className="grid gap-6 lg:grid-cols-[22rem_1fr] lg:items-start">
         <form
@@ -76,27 +79,21 @@ export function PhysicalCountView() {
             e.preventDefault();
             post();
           }}
-          className="space-y-4 rounded-md border border-line bg-panel p-4"
+          className={cn(PANEL_CLASS, "space-y-4")}
         >
           <h2 className="font-semibold">New count</h2>
 
           <Field label="Item" htmlFor="count-item">
-            <select
+            <Select
               id="count-item"
               value={sku}
-              onChange={(e) => {
-                setSku(e.target.value);
+              options={itemOptions}
+              onChange={(value) => {
+                setSku(value);
                 setCounted("");
                 setNotice(null);
               }}
-              className={cn(controlClass, "h-9 w-full")}
-            >
-              {items.map((i) => (
-                <option key={i.sku} value={i.sku}>
-                  {i.sku} – {i.name}
-                </option>
-              ))}
-            </select>
+            />
           </Field>
 
           <p className="text-sm">
@@ -108,7 +105,7 @@ export function PhysicalCountView() {
             htmlFor="count-qty"
             error={counted.trim() !== "" && countedQty === null ? "Enter a whole number, 0 or higher." : null}
           >
-            <input
+            <Input
               id="count-qty"
               type="number"
               inputMode="numeric"
@@ -116,7 +113,7 @@ export function PhysicalCountView() {
               step={1}
               value={counted}
               onChange={(e) => setCounted(e.target.value)}
-              className={cn(controlClass, "h-9 w-full tabular-nums")}
+              className="tabular-nums"
             />
           </Field>
 
@@ -133,18 +130,7 @@ export function PhysicalCountView() {
           </div>
 
           <Field label="Reason" htmlFor="count-reason" error={reasonError}>
-            <select
-              id="count-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value as AdjustmentReason)}
-              className={cn(controlClass, "h-9 w-full")}
-            >
-              {(Object.keys(REASON_LABEL) as AdjustmentReason[]).map((r) => (
-                <option key={r} value={r}>
-                  {REASON_LABEL[r]}
-                </option>
-              ))}
-            </select>
+            <Select id="count-reason" value={reason} options={REASON_OPTIONS} onChange={setReason} />
           </Field>
 
           <Button type="submit" disabled={!canPost}>
