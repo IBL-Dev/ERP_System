@@ -5,7 +5,7 @@ import { DEMO_TODAY, LOW_STOCK_REQUESTER } from "@/common/const";
 import { INITIAL_STATE } from "@/common/const/mock/supplier.mock";
 import type { PurchaseOrder, ReorderResult, Requisition, SupplierContextValue } from "@/common/type";
 import { useInventory } from "@/features/inventory/InventoryProvider";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
 import { addDays } from "@/lib/date";
 import { supplierReducer } from "./reducer";
 import { arrivalOf, contractStatus, currentContract, nextNumber, offersFor, poTotal, round2 } from "./utils";
@@ -20,7 +20,7 @@ const SupplierContext = createContext<SupplierContextValue | null>(null);
 export function SupplierProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(supplierReducer, INITIAL_STATE);
   const inventory = useInventory();
-  const meId = getSession().employeeId;
+  const meId = useSession().employeeId;
 
   const value = useMemo<SupplierContextValue>(() => {
     const suppliersById = Object.fromEntries(state.suppliers.map((s) => [s.id, s]));

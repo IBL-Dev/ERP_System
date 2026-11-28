@@ -6,6 +6,8 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { ROUTES } from "@/common/const";
 import { BackIcon, HomeIcon, MenuIcon } from "@/components/ui/icons";
 import { Input } from "@/components/ui/Input";
+import { useSession } from "@/features/session/SessionProvider";
+import { canAccessHref } from "@/lib/access";
 import { findByCode } from "@/lib/navigation";
 import { cn } from "@/lib/cn";
 
@@ -23,6 +25,7 @@ function IconButton({ label, onClick, className, children }: { label: string; on
 /** SAP-style command row: type a transaction code (e.g. INV01) and press Enter. */
 export function CommandBar({ onToggleMenu }: { onToggleMenu: () => void }) {
   const router = useRouter();
+  const { role } = useSession();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +36,10 @@ export function CommandBar({ onToggleMenu }: { onToggleMenu: () => void }) {
     const node = findByCode(value);
     if (!node?.href) {
       setError(`Transaction code ${value.toUpperCase()} does not exist.`);
+      return;
+    }
+    if (!canAccessHref(role, node.href)) {
+      setError(`You are not authorized to use transaction code ${value.toUpperCase()}.`);
       return;
     }
     setError(null);

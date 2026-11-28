@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronIcon, DocIcon, FolderIcon } from "@/components/ui/icons";
 import { FAVORITE_MENU_IDS, MENU, MENU_ROOT_IDS, ROUTES } from "@/common/const";
 import type { MenuNode } from "@/common/type";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
 import { cn } from "@/lib/cn";
+import { filterMenu } from "@/lib/access";
 import { ancestorIds, flattenMenu } from "@/lib/navigation";
 
 const row =
@@ -71,7 +72,8 @@ function Branch({ node, depth, open, toggle, pathname }: BranchProps) {
 
 export function MenuTree() {
   const pathname = usePathname();
-  const { department } = getSession();
+  const { department, role } = useSession();
+  const menu = useMemo(() => filterMenu(role, MENU), [role]);
 
   const [open, setOpen] = useState<Set<string>>(
     () => new Set([...MENU_ROOT_IDS, department, ...(ancestorIds(pathname) ?? [])]),
@@ -92,13 +94,13 @@ export function MenuTree() {
       return next;
     });
 
-  const all = flattenMenu();
+  const all = flattenMenu(menu);
   const favorites: MenuNode = {
     id: "favorites",
     label: "Favorites",
     children: FAVORITE_MENU_IDS.map((id) => all.find((n) => n.id === id)).filter((n): n is MenuNode => Boolean(n)),
   };
-  const root: MenuNode = { id: "root", label: "LMS menu", children: MENU };
+  const root: MenuNode = { id: "root", label: "LMS menu", children: menu };
 
   return (
     <nav aria-label="Main menu" className="py-2">

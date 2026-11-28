@@ -4,7 +4,7 @@ import { createContext, useContext, useMemo, useReducer, type ReactNode } from "
 import { DEMO_TODAY } from "@/common/const";
 import { INITIAL_STATE } from "@/common/const/mock/hr.mock";
 import type { Employee, HrContextValue, LeaveRequest } from "@/common/type";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
 import { addDays, toMinutes } from "@/lib/date";
 import { nextNumber } from "@/lib/ids";
 import { hrReducer } from "./reducer";
@@ -23,7 +23,7 @@ const nowHHMM = () => {
  */
 export function HrProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(hrReducer, INITIAL_STATE);
-  const { employeeId: meId, name: meName } = getSession();
+  const { employeeId: meId, name: meName } = useSession();
 
   const value = useMemo<HrContextValue>(
     () => ({
