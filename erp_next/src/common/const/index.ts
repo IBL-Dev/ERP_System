@@ -1,5 +1,6 @@
 // All hardcoded value sets live here. Import them as: import { ROUTES } from "@/common/const";
 // Mock data is NOT exported from this barrel; import it from "@/common/const/mock/..." so it is easy to remove later.
+export * from "./access.const";
 export * from "./app.const";
 export * from "./auth.const";
 export * from "./date.const";

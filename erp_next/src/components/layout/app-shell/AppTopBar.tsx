@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ROUTES } from "@/common/const";
 import { SystemMenu } from "@/components/layout/top-bar/SystemMenu";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
+import { signOutSession } from "@/features/session/storage";
 
 export function AppTopBar() {
-  const session = getSession();
+  const session = useSession();
 
   return (
     <header className="border-b border-line bg-shell text-shell-fg">
@@ -16,6 +19,7 @@ export function AppTopBar() {
           </span>
           <Link
             href={ROUTES.login}
+            onClick={signOutSession}
             className="flex h-7 items-center rounded px-3 hover:bg-shell-hover focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
           >
             Log off

@@ -10,7 +10,7 @@ import type {
   JournalSource,
   PayResult,
 } from "@/common/type";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
 import { useSales } from "@/features/sales/SalesProvider";
 import { useSupplier } from "@/features/supplier/SupplierProvider";
 import { addMonths, endOfMonth } from "@/lib/date";
@@ -39,7 +39,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(financeReducer, INITIAL_STATE);
   const sales = useSales();
   const supplier = useSupplier();
-  const meId = getSession().employeeId;
+  const meId = useSession().employeeId;
 
   const value = useMemo<FinanceContextValue>(() => {
     const balances = accountBalances(state.journal);

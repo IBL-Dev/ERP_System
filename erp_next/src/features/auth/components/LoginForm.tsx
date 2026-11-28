@@ -6,6 +6,8 @@ import { LOGIN_COPY, ROUTES } from "@/common/const";
 import type { LoginErrors, LoginValues, LoginVariant } from "@/common/type";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
+import { resolveLoginUser } from "@/features/session/session";
+import { signInAs } from "@/features/session/storage";
 import { validateLogin } from "../validation";
 
 export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
@@ -31,7 +33,8 @@ export function LoginForm({ variant = "user" }: { variant?: LoginVariant }) {
     if (found.password) return passwordRef.current?.focus();
 
     // TODO: call the authentication API here (use `variant` to pick user vs admin endpoint).
-    // Until then any non-empty user and password opens Easy Access.
+    // Until then any non-empty password works; the user name picks a mock user (SADMIN01 or ADMIN01).
+    signInAs(resolveLoginUser(values.username).userId);
     router.push(ROUTES.home);
   };
 

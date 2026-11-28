@@ -5,7 +5,7 @@ import { DEMO_TODAY, FULFILLMENT_TEAM, QUOTE_VALIDITY_DAYS } from "@/common/cons
 import { INITIAL_STATE } from "@/common/const/mock/sales.mock";
 import type { ConvertResult, Customer, Invoice, Quote, SalesContextValue, SalesOrder } from "@/common/type";
 import { useInventory } from "@/features/inventory/InventoryProvider";
-import { getSession } from "@/features/session/session";
+import { useSession } from "@/features/session/SessionProvider";
 import { addDays } from "@/lib/date";
 import { buildQuoteLine, linesTotal } from "@/lib/pricing";
 import { salesReducer } from "./reducer";
@@ -21,7 +21,7 @@ const SalesContext = createContext<SalesContextValue | null>(null);
 export function SalesProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(salesReducer, INITIAL_STATE);
   const inventory = useInventory();
-  const userName = getSession().name;
+  const userName = useSession().name;
 
   const value = useMemo<SalesContextValue>(() => {
     const customersById = Object.fromEntries(state.customers.map((c) => [c.id, c])) as Record<string, Customer>;
