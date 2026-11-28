@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <>
       <PageHeader
-        title="LMS ERP Easy Access"
+        title="ERP Easy Access"
         description={`Signed in as ${session.userId}, ${session.responsibility}. Pick a department, or type a transaction code such as INV01 in the command field.`}
       />
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
